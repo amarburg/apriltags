@@ -277,7 +277,7 @@ namespace AprilTags {
 #ifdef DEBUG_APRIL
   int height_ = fimSeg.getHeight();
   int width_  = fimSeg.getWidth();
-  cv::Mat image(height_, width_, CV_8UC3);
+  cv::Mat debugImage(height_, width_, CV_8UC3);
   {
     for (int y=0; y<height_; y++) {
       for (int x=0; x<width_; x++) {
@@ -289,7 +289,7 @@ namespace AprilTags {
         for (int k=0; k<3; k++) {
           v(k) = val;
         }
-        image.at<cv::Vec3b>(y, x) = v;
+        debugImage.at<cv::Vec3b>(y, x) = v;
       }
     }
   }
@@ -515,14 +515,14 @@ namespace AprilTags {
   {
     int height_ = fimOrig.getHeight();
     int width_  = fimOrig.getWidth();
-    cv::Mat image2(height_, width_, CV_8UC3);
+    cv::Mat debugImage2(height_, width_, CV_8UC3);
     for (int y=0; y<height_; y++) {
       for (int x=0; x<width_; x++) {
         cv::Vec3b v;
         for (int k=0; k<3; k++) {
           v(k) = 0;
         }
-        image2.at<cv::Vec3b>(y, x) = v;
+        debugImage2.at<cv::Vec3b>(y, x) = v;
       }
     }
     
@@ -532,21 +532,22 @@ namespace AprilTags {
       std::pair<float, float> p2 = quad.quadPoints[1];
       std::pair<float, float> p3 = quad.quadPoints[2];
       std::pair<float, float> p4 = quad.quadPoints[3];
-      cv::line(image2, cv::Point2f(p1.first, p1.second), cv::Point2f(p2.first, p2.second), cv::Scalar(0,0,255,0) );
-      cv::line(image2, cv::Point2f(p2.first, p2.second), cv::Point2f(p3.first, p3.second), cv::Scalar(0,0,255,0) );
-      cv::line(image2, cv::Point2f(p3.first, p3.second), cv::Point2f(p4.first, p4.second), cv::Scalar(0,0,255,0) );
-      cv::line(image2, cv::Point2f(p4.first, p4.second), cv::Point2f(p1.first, p1.second), cv::Scalar(0,0,255,0) );
+      cv::line(debugImage2, cv::Point2f(p1.first, p1.second), cv::Point2f(p2.first, p2.second), cv::Scalar(0,0,255,0) );
+      cv::line(debugImage2, cv::Point2f(p2.first, p2.second), cv::Point2f(p3.first, p3.second), cv::Scalar(0,0,255,0) );
+      cv::line(debugImage2, cv::Point2f(p3.first, p3.second), cv::Point2f(p4.first, p4.second), cv::Scalar(0,0,255,0) );
+      cv::line(debugImage2, cv::Point2f(p4.first, p4.second), cv::Point2f(p1.first, p1.second), cv::Scalar(0,0,255,0) );
 
       p1 = quad.interpolate(-1,-1);
       p2 = quad.interpolate(-1,1);
       p3 = quad.interpolate(1,1);
       p4 = quad.interpolate(1,-1);
-      cv::circle(image2, cv::Point2f(p1.first, p1.second), 3, cv::Scalar(0,255,0,0), 1);
-      cv::circle(image2, cv::Point2f(p2.first, p2.second), 3, cv::Scalar(0,255,0,0), 1);
-      cv::circle(image2, cv::Point2f(p3.first, p3.second), 3, cv::Scalar(0,255,0,0), 1);
-      cv::circle(image2, cv::Point2f(p4.first, p4.second), 3, cv::Scalar(0,255,0,0), 1);
+      cv::circle(debugImage2, cv::Point2f(p1.first, p1.second), 3, cv::Scalar(0,255,0,0), 1);
+      cv::circle(debugImage2, cv::Point2f(p2.first, p2.second), 3, cv::Scalar(0,255,0,0), 1);
+      cv::circle(debugImage2, cv::Point2f(p3.first, p3.second), 3, cv::Scalar(0,255,0,0), 1);
+      cv::circle(debugImage2, cv::Point2f(p4.first, p4.second), 3, cv::Scalar(0,255,0,0), 1);
     }
-    cv::imwrite("test.2.png", image2);
+    imshow( "debugImage2", debugImage2 );
+    //cv::imwrite("test.2.png", image2);
   }
 #endif
 
@@ -603,9 +604,9 @@ namespace AprilTags {
 #ifdef DEBUG_APRIL
         {
           if (v>threshold)
-            cv::circle(image, cv::Point2f(irx, iry), 1, cv::Scalar(0,0,255,0), 2);
+            cv::circle(debugImage, cv::Point2f(irx, iry), 1, cv::Scalar(0,0,255,0), 2);
           else
-            cv::circle(image, cv::Point2f(irx, iry), 1, cv::Scalar(0,255,0,0), 2);
+            cv::circle(debugImage, cv::Point2f(irx, iry), 1, cv::Scalar(0,255,0,0), 2);
         }
 #endif
       }
@@ -659,7 +660,7 @@ namespace AprilTags {
 
 #ifdef DEBUG_APRIL
   {
-    cv::imshow("debug_april", image);
+    cv::imshow("debug_april", debugImage);
   }
 #endif
 

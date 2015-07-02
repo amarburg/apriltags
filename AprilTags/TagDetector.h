@@ -14,6 +14,10 @@
 
 namespace AprilTags {
 
+  // Default parameter values
+  const int DefaultAdaptiveThresholdRadius = 9;
+  const int DefaultAdaptiveThresholdOffset = 5;
+
 class TagDetector {
 public:
 	
@@ -21,8 +25,13 @@ public:
 
 	//! Constructor
   // note: TagFamily is instantiated here from TagCodes
-  TagDetector(const TagCodes& tagCodes) : thisTagFamily(tagCodes),  m_Sigma(0), m_SegmentationSigma(0.8) {}
-	
+  TagDetector(const TagCodes& tagCodes) 
+    : thisTagFamily(tagCodes),
+      m_BlockSize( DefaultAdaptiveThresholdRadius ),
+      m_Offset( DefaultAdaptiveThresholdOffset ),
+      m_Sigma(0), 
+      m_SegmentationSigma(0.8) {}
+
 	std::vector<TagDetection> extractTags(const cv::Mat& image);
 	
   /**
