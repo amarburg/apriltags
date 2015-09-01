@@ -1,11 +1,11 @@
-#include "Segment.h"
+#include "AprilTags/Segment.h"
 #include <iostream>
 
 namespace AprilTags {
 
 const float Segment::minimumLineLength = 4;
 
-Segment::Segment() 
+Segment::Segment()
   : children(), x0(0), y0(0), x1(0), y1(0), theta(0), length(0), segmentId(++idCounter) {}
 
 float Segment::segmentLength() {

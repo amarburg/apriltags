@@ -6,7 +6,7 @@
 
 #include <opencv2/opencv.hpp>
 
-#include "Homography33.h"
+#include "AprilTags/Homography33.h"
 
 Homography33::Homography33(const std::pair<float,float> &opticalCenter) : cxy(opticalCenter), fA(), H(), valid(false) {
   fA.setZero();
@@ -38,7 +38,7 @@ void Homography33::addCorrespondence(float worldx, float worldy, float imagex, f
    * A[3*i+0][6] =  worldxyh[i][0]*imagexy[i][1];
    * A[3*i+0][7] =  worldxyh[i][1]*imagexy[i][1];
    * A[3*i+0][8] =  worldxyh[i][2]*imagexy[i][1];
-   *       
+   *
    * A[3*i+1][0] =  worldxyh[i][0]*imagexy[i][2];
    * A[3*i+1][1] =  worldxyh[i][1]*imagexy[i][2];
    * A[3*i+1][2] =  worldxyh[i][2]*imagexy[i][2];
@@ -213,4 +213,3 @@ std::pair<float,float> Homography33::project(float worldx, float worldy) {
   ixy.second = ixy.second/z + cxy.second;
   return ixy;
 }
-

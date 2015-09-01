@@ -7,7 +7,7 @@
 #include "AprilTags/Segment.h"
 
 namespace AprilTags {
-	
+
 const float Quad::maxQuadAspectRatio = 32;
 
 Quad::Quad(const std::vector< std::pair<float,float> >& p, const std::pair<float,float>& opticalCenter)
@@ -64,7 +64,7 @@ void Quad::search(const FloatImage& fImage, std::vector<Segment*>& path,
       float calculatedPerimeter = 0;
       bool bad = false;
       for (int i = 0; i < 4; i++) {
-	// compute intersections between all the lines. This will give us 
+	// compute intersections between all the lines. This will give us
 	// sub-pixel accuracy for the corners of the quad.
 	GLine2D linea(std::make_pair(path[i]->getX0(),path[i]->getY0()),
 		      std::make_pair(path[i]->getX1(),path[i]->getY1()));
@@ -79,7 +79,7 @@ void Quad::search(const FloatImage& fImage, std::vector<Segment*>& path,
 	  bad = true;
       }
       // cout << "bad = " << bad << endl;
-      // eliminate quads that don't form a simply connected loop, i.e., those 
+      // eliminate quads that don't form a simply connected loop, i.e., those
       // that form an hour glass, or wind the wrong way.
       if (!bad) {
 	float t0 = std::atan2(p[1].second-p[0].second, p[1].first-p[0].first);
@@ -92,7 +92,7 @@ void Quad::search(const FloatImage& fImage, std::vector<Segment*>& path,
 	float ttheta = MathUtil::mod2pi(t1-t0) + MathUtil::mod2pi(t2-t1) +
 	  MathUtil::mod2pi(t3-t2) + MathUtil::mod2pi(t0-t3);
 	// cout << "ttheta=" << ttheta << endl;
-	// the magic value is -2*PI. It should be exact, 
+	// the magic value is -2*PI. It should be exact,
 	// but we allow for (lots of) numeric imprecision.
 	if (ttheta < -7 || ttheta > -5)
 	  bad = true;
@@ -141,7 +141,7 @@ void Quad::search(const FloatImage& fImage, std::vector<Segment*>& path,
     Segment &child = *parent.children[i];
     //    cout << "  Child " << child.getId() << ":  ";
     // (handedness was checked when we created the children)
-    
+
     // we could rediscover each quad 4 times (starting from
     // each corner). If we had an arbitrary ordering over
     // points, we can eliminate the redundant detections by

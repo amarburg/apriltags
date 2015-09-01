@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "TagFamily.h"
+#include "AprilTags/TagFamily.h"
 
 /**
 
@@ -50,7 +50,7 @@ unsigned long long TagFamily::rotate90(unsigned long long w, int d) {
     for (int c = 0; c<d; c++) {
       int b = r + d*c;
       wr = wr<<1;
-      
+
       if ((w & (oneLongLong<<b)) != 0)
 	wr |= 1;
     }

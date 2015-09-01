@@ -28,7 +28,7 @@ void GrayModel::addObservation(float x, float y, float gray) {
   A(2,2) += xy*xy;
   A(2,3) += xy;
   A(3,3) += 1;
-  
+
   b[0] += x*gray;
   b[1] += y*gray;
   b[2] += xy*gray;
@@ -75,7 +75,7 @@ void GrayModel::compute() {
   // If we get here, either nobs < 6 or the matrix inverse generated
   // an underflow, so use a constant model.
   v.setZero();   // need the cast to avoid operator= ambiguity wrt. const-ness
-  v[3] = b[3] / nobs;      
+  v[3] = b[3] / nobs;
 }
 
 } // namespace

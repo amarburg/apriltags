@@ -1,14 +1,14 @@
-#include "GLine2D.h"
+#include "AprilTags/GLine2D.h"
 
 namespace AprilTags {
 
-GLine2D::GLine2D() 
+GLine2D::GLine2D()
   : dx(0), dy(0), p(0,0), didNormalizeSlope(false), didNormalizeP(false) {}
 
-GLine2D::GLine2D(float slope, float b) 
+GLine2D::GLine2D(float slope, float b)
   : dx(1), dy(slope), p(0,b), didNormalizeSlope(false), didNormalizeP(false){}
 
-GLine2D::GLine2D(float dX, float dY, const std::pair<float,float>& pt) 
+GLine2D::GLine2D(float dX, float dY, const std::pair<float,float>& pt)
   : dx(dX), dy(dY), p(pt), didNormalizeSlope(false), didNormalizeP(false) {}
 
 GLine2D::GLine2D(const std::pair<float,float>& p1, const std::pair<float,float>& p2)
@@ -70,7 +70,7 @@ GLine2D GLine2D::lsqFitXYW(const std::vector<XYWeight>& xyweights) {
 
     idx++;
   }
-  
+
   Ex  = mX/n;
   Ey  = mY/n;
   Cxx = mXX/n - MathUtil::square(mX/n);

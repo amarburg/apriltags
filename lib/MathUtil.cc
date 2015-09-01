@@ -1,6 +1,6 @@
-#include "MathUtil.h"
+#include "AprilTags/MathUtil.h"
 
-namespace AprilTags{
+namespace AprilTags {
 
 // Output operator for std::pair<float,float>, useful for debugging
 std::ostream& operator<<(std::ostream &os, const std::pair<float,float> &pt) {

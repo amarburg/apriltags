@@ -46,7 +46,7 @@ void Edge::calcEdges(float theta0, int x, int y,
     edges[nEdges].pixelIdxB = (y+1)*width+x;
     ++nEdges;
   }
-  
+
   // downward diagonal edge
   int cost3 = edgeCost(theta0, theta.get(x+1, y+1), mag.get(x+1,y+1));
   if (cost3 >= 0) {
@@ -74,7 +74,7 @@ void Edge::mergeEdges(std::vector<Edge> &edges, UnionFindSimple &uf,
 
     ida = uf.getRepresentative(ida);
     idb = uf.getRepresentative(idb);
-      
+
     if (ida == idb)
       continue;
 
@@ -104,12 +104,12 @@ void Edge::mergeEdges(std::vector<Edge> &edges, UnionFindSimple &uf,
     float costab = (tmaxab - tminab);
     if (costab <= (min(costa, costb) + Edge::thetaThresh/(sza+szb)) &&
 	(mmaxab-mminab) <= min(mmax[ida]-mmin[ida], mmax[idb]-mmin[idb]) + Edge::magThresh/(sza+szb)) {
-	
+
       int idab = uf.connectNodes(ida, idb);
-	
+
       tmin[idab] = tminab;
       tmax[idab] = tmaxab;
-	
+
       mmin[idab] = mminab;
       mmax[idab] = mmaxab;
     }
