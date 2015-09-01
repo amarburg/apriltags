@@ -29,5 +29,20 @@ install(TARGETS apriltags
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
-
   )
+
+## Unit testing
+
+
+## Performance testing
+option( BUILD_PERF_TESTS "Build performance tests" ON )
+if( BUILD_PERF_TESTS )
+  add_subdirectory( test/perf )
+  enable_testing()
+endif()
+
+option( BUILD_UNIT_TESTS "Build unit tests" ON )
+if( BUILD_UNIT_TESTS )
+  add_subdirectory( test/unit )
+  enable_testing()
+endif()
