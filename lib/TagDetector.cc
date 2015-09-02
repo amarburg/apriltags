@@ -21,12 +21,7 @@
 
 #include "AprilTags/TagDetector.h"
 
-//#define DEBUG_APRIL
 
-#ifdef DEBUG_APRIL
-#include <opencv/cv.h>
-#include <opencv/highgui.h>
-#endif
 
 using namespace std;
 
@@ -35,31 +30,31 @@ namespace AprilTags {
   //-----------------------------------------------------------------------------
   void TagDetector::SetUseHybridMethod(const bool& useHybrid)
   {
-    m_UseHybrid = useHybrid;  
+    m_UseHybrid = useHybrid;
   }
 
-  
+
   //-----------------------------------------------------------------------------
   void TagDetector::SetMinSize(const float& minSize)
   {
     m_MinSize = minSize;
   }
-  
-  
+
+
   //-----------------------------------------------------------------------------
   void TagDetector::SetMaxSize(const float& maxSize)
   {
     m_MaxSize = maxSize;
   }
-  
-  
+
+
   //-----------------------------------------------------------------------------
   void TagDetector::SetBlockSize(const int& blockSize)
   {
     m_BlockSize = blockSize;
   }
-  
-  
+
+
   //-----------------------------------------------------------------------------
   void TagDetector::SetOffset(const int& offset)
   {
@@ -107,10 +102,10 @@ namespace AprilTags {
     // could probably sample just one point!
 
     float flip = 0, noflip = 0;
-    for (unsigned int i = 0; i < points.size(); i++) 
+    for (unsigned int i = 0; i < points.size(); i++)
     {
       XYWeight xyw = points[i];
-      
+
       float theta = fimTheta.get((int) xyw.x, (int) xyw.y);
       float mag = fimMag.get((int) xyw.x, (int) xyw.y);
 
@@ -137,10 +132,10 @@ namespace AprilTags {
     else {
       seg.setX0(gseg.getP0().first); seg.setY0(gseg.getP0().second);
       seg.setX1(gseg.getP1().first); seg.setY1(gseg.getP1().second);
-    }    
+    }
   }
-  
-  
+
+
   //-----------------------------------------------------------------------------
   std::vector<TagDetection> TagDetector::extractTags(const cv::Mat& image) {
 
@@ -156,6 +151,10 @@ namespace AprilTags {
       }
     }
     std::pair<int,int> opticalCenter(width/2, height/2);
+
+#ifdef BUILD_DEBUG_TAG_DETECTOR
+  drawOriginalImage( fimOrig );
+#endif
 
 #ifdef DEBUG_APRIL
 #if 0
@@ -205,7 +204,7 @@ namespace AprilTags {
   // Step one: preprocess image (convert to grayscale) and low pass if necessary
 
   FloatImage fim = fimOrig;
-  
+
   //! Gaussian smoothing kernel applied to image (0 == no filter).
   /*! Used when sampling bits. Filtering is a good idea in cases
    * where A) a cheap camera is introducing artifical sharpening, B)
@@ -252,9 +251,12 @@ namespace AprilTags {
     fimSeg = fimOrig;
   }
 
+#ifdef BUILD_DEBUG_TAG_DETECTOR
+  drawGaussianLowPassImage( fimSeg );
+#endif
+
   FloatImage fimTheta(fimSeg.getWidth(), fimSeg.getHeight());
   FloatImage fimMag(fimSeg.getWidth(), fimSeg.getHeight());
-  
 
   #pragma omp parallel for
   for (int y = 1; y < fimSeg.getHeight()-1; y++) {
@@ -268,39 +270,20 @@ namespace AprilTags {
 #else
       float theta = atan2(Iy, Ix);
 #endif
-      
+
       fimTheta.set(x, y, theta);
       fimMag.set(x, y, mag);
     }
   }
 
-#ifdef DEBUG_APRIL
-  int height_ = fimSeg.getHeight();
-  int width_  = fimSeg.getWidth();
-  cv::Mat debugImage(height_, width_, CV_8UC3);
-  {
-    for (int y=0; y<height_; y++) {
-      for (int x=0; x<width_; x++) {
-        cv::Vec3b v;
-        //        float vf = fimMag.get(x,y);
-        float vf = fimOrig.get(x,y);
-        int val = (int)(vf * 255.);
-        if ((val & 0xffff00) != 0) {printf("problem... %i\n", val);}
-        for (int k=0; k<3; k++) {
-          v(k) = val;
-        }
-        debugImage.at<cv::Vec3b>(y, x) = v;
-      }
-    }
-  }
-#endif
+
 
   //================================================================
   // Step three. Extract edges by grouping pixels with similar
   // thetas together. This is a greedy algorithm: we start with
   // the most similar pixels.  We use 4-connectivity.
   UnionFindSimple uf(fimSeg.getWidth()*fimSeg.getHeight());
-  
+
   vector<Edge> edges(width*height*4);
   size_t nEdges = 0;
 
@@ -316,33 +299,33 @@ namespace AprilTags {
     float * tmax = &storage[width*height*1];
     float * mmin = &storage[width*height*2];
     float * mmax = &storage[width*height*3];
-                  
+
     for (int y = 0; y+1 < height; y++) {
       for (int x = 0; x+1 < width; x++) {
-                                  
+
         float mag0 = fimMag.get(x,y);
         if (mag0 < Edge::minMag)
           continue;
         mmax[y*width+x] = mag0;
         mmin[y*width+x] = mag0;
-                                  
+
         float theta0 = fimTheta.get(x,y);
         tmin[y*width+x] = theta0;
         tmax[y*width+x] = theta0;
-                                  
+
         // Calculates then adds edges to 'vector<Edge> edges'
         Edge::calcEdges(theta0, x, y, fimTheta, fimMag, edges, nEdges);
-                                  
+
         // XXX Would 8 connectivity help for rotated tags?
         // Probably not much, so long as input filtering hasn't been disabled.
       }
     }
-                  
+
     edges.resize(nEdges);
     std::stable_sort(edges.begin(), edges.end());
     Edge::mergeEdges(edges,uf,tmin,tmax,mmin,mmax);
   }
-          
+
   //================================================================
   // Step four: Loop over the pixels again, collecting statistics for each cluster.
   // We will soon fit lines (segments) to these points.
@@ -354,11 +337,11 @@ namespace AprilTags {
 	continue;
 
       int rep = (int) uf.getRepresentative(y*fimSeg.getWidth()+x);
-     
+
       map<int, vector<XYWeight> >::iterator it = clusters.find(rep);
       if ( it == clusters.end() ) {
-	clusters[rep] = vector<XYWeight>();
-	it = clusters.find(rep);
+      	clusters[rep] = vector<XYWeight>();
+      	it = clusters.find(rep);
       }
       vector<XYWeight> &points = it->second;
       points.push_back(XYWeight(x,y,fimMag.get(x,y)));
@@ -383,36 +366,26 @@ namespace AprilTags {
     segments.push_back(seg);
   }
 
-#ifdef DEBUG_APRIL
-#if 0
-  {
-    for (vector<Segment>::iterator it = segments.begin(); it!=segments.end(); it++) {
-      long int r = random();
-      cv::line(image,
-               cv::Point2f(it->getX0(), it->getY0()),
-               cv::Point2f(it->getX1(), it->getY1()),
-               cv::Scalar(r%0xff,(r%0xff00)>>8,(r%0xff0000)>>16,0) );
-    }
-  }
-#endif
+#ifdef BUILD_DEBUG_TAG_DETECTOR
+  drawLineSegments( segments );
 #endif
 
   // Step six: For each segment, find segments that begin where this segment ends.
   // (We will chain segments together next...) The gridder accelerates the search by
   // building (essentially) a 2D hash table.
   Gridder<Segment> gridder(0,0,width,height,10);
-  
+
   // add every segment to the hash table according to the position of the segment's
   // first point. Remember that the first point has a specific meaning due to our
   // left-hand rule above.
   for (unsigned int i = 0; i < segments.size(); i++) {
     gridder.add(segments[i].getX0(), segments[i].getY0(), &segments[i]);
   }
-  
+
   // Now, find child segments that begin where each parent segment ends.
   for (unsigned i = 0; i < segments.size(); i++) {
     Segment &parentseg = segments[i];
-      
+
     //compute length of the line segment
     GLine2D parentLine(std::pair<float,float>(parentseg.getX0(), parentseg.getY0()),
 		       std::pair<float,float>(parentseg.getX1(), parentseg.getY1()));
@@ -420,26 +393,20 @@ namespace AprilTags {
     Gridder<Segment>::iterator iter = gridder.find(parentseg.getX1(), parentseg.getY1(), 0.5f*parentseg.getLength());
     while(iter.hasNext()) {
       Segment &child = iter.next();
-      if (MathUtil::mod2pi(child.getTheta() - parentseg.getTheta()) > 0) {
-	continue;
-      }
+      if (MathUtil::mod2pi(child.getTheta() - parentseg.getTheta()) > 0) continue;
 
       // compute intersection of points
       GLine2D childLine(std::pair<float,float>(child.getX0(), child.getY0()),
 			std::pair<float,float>(child.getX1(), child.getY1()));
 
       std::pair<float,float> p = parentLine.intersectionWith(childLine);
-      if (p.first == -1) {
-	continue;
-      }
+      if (p.first == -1) continue;
+
 
       float parentDist = MathUtil::distance2D(p, std::pair<float,float>(parentseg.getX1(),parentseg.getY1()));
       float childDist = MathUtil::distance2D(p, std::pair<float,float>(child.getX0(),child.getY0()));
 
-      if (max(parentDist,childDist) > parentseg.getLength()) {
-	// cout << "intersection too far" << endl;
-	continue;
-      }
+      if (max(parentDist,childDist) > parentseg.getLength()) continue;
 
       // everything's OK, this child is a reasonable successor.
       parentseg.children.push_back(&child);
@@ -450,7 +417,7 @@ namespace AprilTags {
   // Step seven: Search all connected segments to see if any form a loop of length 4.
   // Add those to the quads list.
   vector<Quad> quads;
-  
+
   vector<Segment*> tmp(5);
   for (unsigned int i = 0; i < segments.size(); i++) {
     tmp[0] = &segments[i];
@@ -466,8 +433,8 @@ namespace AprilTags {
     int height_ = fimOrig.getHeight();
     int width_  = fimOrig.getWidth();
     cv::Mat thresholded(height_, width_, CV_8UC1);
-    cv::adaptiveThreshold ( image, thresholded, 255, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY_INV, m_BlockSize, m_Offset);  
-    
+    cv::adaptiveThreshold ( image, thresholded, 255, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY_INV, m_BlockSize, m_Offset);
+
     int minSize = m_MinSize*std::max(thresholded.cols,thresholded.rows)*4;
     int maxSize = m_MaxSize*std::max(thresholded.cols,thresholded.rows)*4;
     std::vector<std::vector<cv::Point> > contours;
@@ -490,14 +457,14 @@ namespace AprilTags {
             {
               float d = std::sqrt ( ( float ) ( approxCurve[j].x-approxCurve[ ( j+1 ) %4].x ) * ( approxCurve[j].x-approxCurve[ ( j+1 ) %4].x ) +
                                               ( approxCurve[j].y-approxCurve[ ( j+1 ) %4].y ) * ( approxCurve[j].y-approxCurve[ ( j+1 ) %4].y ) );
-              if ( d < minDist ) 
+              if ( d < minDist )
               {
                 minDist=d;
               }
             }
             if ( minDist>10 )
             {
-              std::vector<std::pair<float,float> > corners;              
+              std::vector<std::pair<float,float> > corners;
               for (unsigned int j = 0; j < 4; j++)
               {
                 corners.push_back(std::pair<float, float>(approxCurve[j].x, approxCurve[j].y));
@@ -510,45 +477,9 @@ namespace AprilTags {
       } // if outline within minSize, maxSize
     } // for each contour
   } // if grey, 1 channel image
-  
-#ifdef DEBUG_APRIL
-  {
-    int height_ = fimOrig.getHeight();
-    int width_  = fimOrig.getWidth();
-    cv::Mat debugImage2(height_, width_, CV_8UC3);
-    for (int y=0; y<height_; y++) {
-      for (int x=0; x<width_; x++) {
-        cv::Vec3b v;
-        for (int k=0; k<3; k++) {
-          v(k) = 0;
-        }
-        debugImage2.at<cv::Vec3b>(y, x) = v;
-      }
-    }
-    
-    for (unsigned int qi = 0; qi < quads.size(); qi++ ) {
-      Quad &quad = quads[qi];
-      std::pair<float, float> p1 = quad.quadPoints[0];
-      std::pair<float, float> p2 = quad.quadPoints[1];
-      std::pair<float, float> p3 = quad.quadPoints[2];
-      std::pair<float, float> p4 = quad.quadPoints[3];
-      cv::line(debugImage2, cv::Point2f(p1.first, p1.second), cv::Point2f(p2.first, p2.second), cv::Scalar(0,0,255,0) );
-      cv::line(debugImage2, cv::Point2f(p2.first, p2.second), cv::Point2f(p3.first, p3.second), cv::Scalar(0,0,255,0) );
-      cv::line(debugImage2, cv::Point2f(p3.first, p3.second), cv::Point2f(p4.first, p4.second), cv::Scalar(0,0,255,0) );
-      cv::line(debugImage2, cv::Point2f(p4.first, p4.second), cv::Point2f(p1.first, p1.second), cv::Scalar(0,0,255,0) );
 
-      p1 = quad.interpolate(-1,-1);
-      p2 = quad.interpolate(-1,1);
-      p3 = quad.interpolate(1,1);
-      p4 = quad.interpolate(1,-1);
-      cv::circle(debugImage2, cv::Point2f(p1.first, p1.second), 3, cv::Scalar(0,255,0,0), 1);
-      cv::circle(debugImage2, cv::Point2f(p2.first, p2.second), 3, cv::Scalar(0,255,0,0), 1);
-      cv::circle(debugImage2, cv::Point2f(p3.first, p3.second), 3, cv::Scalar(0,255,0,0), 1);
-      cv::circle(debugImage2, cv::Point2f(p4.first, p4.second), 3, cv::Scalar(0,255,0,0), 1);
-    }
-    imshow( "debugImage2", debugImage2 );
-    //cv::imwrite("test.2.png", image2);
-  }
+#ifdef BUILD_DEBUG_TAG_DETECTOR
+  drawQuadImage( quads );
 #endif
 
   //================================================================
@@ -568,17 +499,17 @@ namespace AprilTags {
     for (int iy = -1; iy <= dd; iy++) {
       float y = (iy + 0.5f) / dd;
       for (int ix = -1; ix <= dd; ix++) {
-	float x = (ix + 0.5f) / dd;
-	std::pair<float,float> pxy = quad.interpolate01(x, y);
-	int irx = (int) (pxy.first + 0.5);
-	int iry = (int) (pxy.second + 0.5);
-	if (irx < 0 || irx >= width || iry < 0 || iry >= height)
-	  continue;
-	float v = fim.get(irx, iry);
-	if (iy == -1 || iy == dd || ix == -1 || ix == dd)
-	  whiteModel.addObservation(x, y, v);
-	else if (iy == 0 || iy == (dd-1) || ix == 0 || ix == (dd-1))
-	  blackModel.addObservation(x, y, v);
+        float x = (ix + 0.5f) / dd;
+        std::pair<float,float> pxy = quad.interpolate01(x, y);
+        int irx = (int) (pxy.first + 0.5);
+        int iry = (int) (pxy.second + 0.5);
+        if (irx < 0 || irx >= width || iry < 0 || iry >= height)
+        continue;
+        float v = fim.get(irx, iry);
+        if (iy == -1 || iy == dd || ix == -1 || ix == dd)
+        whiteModel.addObservation(x, y, v);
+        else if (iy == 0 || iy == (dd-1) || ix == 0 || ix == (dd-1))
+        blackModel.addObservation(x, y, v);
       }
     }
 
@@ -587,26 +518,27 @@ namespace AprilTags {
     for ( int iy = thisTagFamily.dimension-1; iy >= 0; iy-- ) {
       float y = (thisTagFamily.blackBorder + iy + 0.5f) / dd;
       for (int ix = 0; ix < thisTagFamily.dimension; ix++ ) {
-	float x = (thisTagFamily.blackBorder + ix + 0.5f) / dd;
-	std::pair<float,float> pxy = quad.interpolate01(x, y);
-	int irx = (int) (pxy.first + 0.5);
-	int iry = (int) (pxy.second + 0.5);
-	if (irx < 0 || irx >= width || iry < 0 || iry >= height) {
-	  // cout << "*** bad:  irx=" << irx << "  iry=" << iry << endl;
-	  bad = true;
-	  continue;
-	}
-	float threshold = (blackModel.interpolate(x,y) + whiteModel.interpolate(x,y)) * 0.5f;
-	float v = fim.get(irx, iry);
-	tagCode = tagCode << 1;
-	if ( v > threshold)
-	  tagCode |= 1;
-#ifdef DEBUG_APRIL
+        float x = (thisTagFamily.blackBorder + ix + 0.5f) / dd;
+        std::pair<float,float> pxy = quad.interpolate01(x, y);
+        int irx = (int) (pxy.first + 0.5);
+        int iry = (int) (pxy.second + 0.5);
+        if (irx < 0 || irx >= width || iry < 0 || iry >= height) {
+          // cout << "*** bad:  irx=" << irx << "  iry=" << iry << endl;
+          bad = true;
+          continue;
+        }
+        float threshold = (blackModel.interpolate(x,y) + whiteModel.interpolate(x,y)) * 0.5f;
+        float v = fim.get(irx, iry);
+        tagCode = tagCode << 1;
+        if ( v > threshold) tagCode |= 1;
+
+#ifdef BUILD_DEBUG_TAG_DETECTOR
         {
-          if (v>threshold)
-            cv::circle(debugImage, cv::Point2f(irx, iry), 1, cv::Scalar(0,0,255,0), 2);
-          else
-            cv::circle(debugImage, cv::Point2f(irx, iry), 1, cv::Scalar(0,255,0,0), 2);
+          if (v>threshold){
+            drawQuadBit( cv::Point2f(irx, iry), cv::Scalar(0,0,255,0) );
+          } else {
+            drawQuadBit( cv::Point2f(irx, iry), cv::Scalar(0,255,0,0) );
+          }
         }
 #endif
       }
@@ -640,29 +572,24 @@ namespace AprilTags {
       int bestRot = -1;
       float bestDist = FLT_MAX;
       for ( int i=0; i<4; i++ ) {
-	float const dist = AprilTags::MathUtil::distance2D(bottomLeft, quad.quadPoints[i]);
-	if ( dist < bestDist ) {
-	  bestDist = dist;
-	  bestRot = i;
-	}
+      	float const dist = AprilTags::MathUtil::distance2D(bottomLeft, quad.quadPoints[i]);
+      	if ( dist < bestDist ) {
+      	  bestDist = dist;
+      	  bestRot = i;
+      	}
       }
 
       for (int i=0; i< 4; i++)
 	thisTagDetection.p[i] = quad.quadPoints[(i+bestRot) % 4];
 
       if (thisTagDetection.good) {
-	thisTagDetection.cxy = quad.interpolate01(0.5f, 0.5f);
-	thisTagDetection.observedPerimeter = quad.observedPerimeter;
-	detections.push_back(thisTagDetection);
+      	thisTagDetection.cxy = quad.interpolate01(0.5f, 0.5f);
+      	thisTagDetection.observedPerimeter = quad.observedPerimeter;
+      	detections.push_back(thisTagDetection);
       }
     }
   }
 
-#ifdef DEBUG_APRIL
-  {
-    cv::imshow("debug_april", debugImage);
-  }
-#endif
 
   //================================================================
   //Step nine: Some quads may be detected more than once, due to
@@ -685,24 +612,21 @@ namespace AprilTags {
       TagDetection &otherTagDetection = goodDetections[odidx];
 
       if ( thisTagDetection.id != otherTagDetection.id ||
-	   ! thisTagDetection.overlapsTooMuch(otherTagDetection) )
-	continue;
+	         ! thisTagDetection.overlapsTooMuch(otherTagDetection) ) continue;
 
       // There's a conflict.  We must pick one to keep.
       newFeature = false;
 
       // This detection is worse than the previous one... just don't use it.
-      if ( thisTagDetection.hammingDistance > otherTagDetection.hammingDistance )
-	continue;
+      if ( thisTagDetection.hammingDistance > otherTagDetection.hammingDistance )	continue;
 
       // Otherwise, keep the new one if it either has strictly *lower* error, or greater perimeter.
       if ( thisTagDetection.hammingDistance < otherTagDetection.hammingDistance ||
-	   thisTagDetection.observedPerimeter > otherTagDetection.observedPerimeter )
-	goodDetections[odidx] = thisTagDetection;
+	         thisTagDetection.observedPerimeter > otherTagDetection.observedPerimeter )
+	       goodDetections[odidx] = thisTagDetection;
     }
 
-     if ( newFeature )
-       goodDetections.push_back(thisTagDetection);
+     if ( newFeature ) goodDetections.push_back(thisTagDetection);
 
   }
 
@@ -711,5 +635,109 @@ namespace AprilTags {
 
   return goodDetections;
 }
+
+#ifdef BUILD_DEBUG_TAG_DETECTOR
+
+void DebugTagDetector::drawOriginalImage( const FloatImage &fimSeg )
+{
+  int height = fimSeg.getHeight();
+  int width  = fimSeg.getWidth();
+
+  originalImage.create(height, width, CV_8UC3);
+
+  for (int y=0; y<height; y++) {
+    for (int x=0; x<width; x++) {
+      //        float vf = fimMag.get(x,y);
+
+      float vf = fimSeg.get(x,y);
+
+      int val = (int)(vf * 255.);
+      //if ((val & 0xffff00) != 0) { printf("problem... %i\n", val); }
+
+      originalImage.at<cv::Vec3b>(y, x) = cv::Vec3b( val, val, val );
+    }
+  }
+}
+
+void DebugTagDetector::drawGaussianLowPassImage( const FloatImage &fimSeg )
+{
+  int height = fimSeg.getHeight();
+  int width  = fimSeg.getWidth();
+
+  gaussianLowPassImage.create(height, width, CV_8UC3);
+
+  for (int y=0; y<height; y++) {
+    for (int x=0; x<width; x++) {
+      //        float vf = fimMag.get(x,y);
+      float vf = fimSeg.get(x,y);
+
+      int val = (int)(vf * 255.);
+      //if ((val & 0xffff00) != 0) { printf("problem... %i\n", val); }
+
+      gaussianLowPassImage.at<cv::Vec3b>(y, x) = cv::Vec3b( val, val, val );
+    }
+  }
+}
+
+void DebugTagDetector::drawLineSegments( const vector<Segment> &segments )
+{
+  gaussianLowPassImage.copyTo( lineSegmentsImage );
+
+  for( vector<Segment>::const_iterator it = segments.begin(); it!=segments.end(); it++ ) {
+    long int r = random();
+    cv::line(lineSegmentsImage,
+              cv::Point2f(it->getX0(), it->getY0()),
+              cv::Point2f(it->getX1(), it->getY1()),
+              cv::Scalar(r%0xff,(r%0xff00)>>8,(r%0xff0000)>>16,0) );
+  }
+}
+
+void DebugTagDetector::drawQuadImage( const vector<Quad> &quads )
+{
+  gaussianLowPassImage.copyTo( quadImage );
+
+    // int height_ = fimOrig.getHeight();
+    // int width_  = fimOrig.getWidth();
+    // cv::Mat debugImage2(height_, width_, CV_8UC3);
+    // for (int y=0; y<height_; y++) {
+    //   for (int x=0; x<width_; x++) {
+    //     cv::Vec3b v;
+    //     for (int k=0; k<3; k++) {
+    //       v(k) = 0;
+    //     }
+    //     debugImage2.at<cv::Vec3b>(y, x) = v;
+    //   }
+    // }
+
+  for (unsigned int qi = 0; qi < quads.size(); qi++ ) {
+    const Quad &quad = quads[qi];
+    std::pair<float, float> p1 = quad.quadPoints[0];
+    std::pair<float, float> p2 = quad.quadPoints[1];
+    std::pair<float, float> p3 = quad.quadPoints[2];
+    std::pair<float, float> p4 = quad.quadPoints[3];
+    cv::line(quadImage, cv::Point2f(p1.first, p1.second), cv::Point2f(p2.first, p2.second), cv::Scalar(0,0,255,0) );
+    cv::line(quadImage, cv::Point2f(p2.first, p2.second), cv::Point2f(p3.first, p3.second), cv::Scalar(0,0,255,0) );
+    cv::line(quadImage, cv::Point2f(p3.first, p3.second), cv::Point2f(p4.first, p4.second), cv::Scalar(0,0,255,0) );
+    cv::line(quadImage, cv::Point2f(p4.first, p4.second), cv::Point2f(p1.first, p1.second), cv::Scalar(0,0,255,0) );
+
+    p1 = quad.interpolate(-1,-1);
+    p2 = quad.interpolate(-1,1);
+    p3 = quad.interpolate(1,1);
+    p4 = quad.interpolate(1,-1);
+    cv::circle(quadImage, cv::Point2f(p1.first, p1.second), 3, cv::Scalar(0,255,0,0), 1);
+    cv::circle(quadImage, cv::Point2f(p2.first, p2.second), 3, cv::Scalar(0,255,0,0), 1);
+    cv::circle(quadImage, cv::Point2f(p3.first, p3.second), 3, cv::Scalar(0,255,0,0), 1);
+    cv::circle(quadImage, cv::Point2f(p4.first, p4.second), 3, cv::Scalar(0,255,0,0), 1);
+  }
+}
+
+// Unlike the other functions, this does not create a new image
+// But simply overlays a point on the quadImage
+void DebugTagDetector::drawQuadBit( const cv::Point2f &pt, const cv::Scalar &color )
+{
+  cv::circle(quadImage, pt, 1, color, 2);
+}
+
+#endif
 
 } // namespace

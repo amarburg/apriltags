@@ -17,7 +17,7 @@ public:
   explicit UnionFindSimple(int maxId) : data(maxId) {
     init();
   };
-  
+
   int getSetSize(int thisId) { return data[getRepresentative(thisId)].size; }
 
   int getRepresentative(int thisId);
@@ -32,7 +32,7 @@ public:
 
 private:
   void init();
-  
+
   std::vector<Data> data;
 };
 
