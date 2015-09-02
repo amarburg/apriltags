@@ -43,27 +43,27 @@ namespace AprilTags {
     /**
      * \brief If true will additionally try to extract quads using adaptive thresholding and OpenCV findContours.
      */
-    void SetUseHybridMethod(const bool& useHybrid);
+    void SetUseHybridMethod( bool useHybrid);
 
     /**
      * \brief Sets the minimum size of the tag, measured as a fraction between 0 and 1 of the maximum of the number of rows and columns.
      */
-    void SetMinSize(const float& minSize);
+    void SetMinSize( float minSize);
 
     /**
      * \brief Sets the maximum size of the tag, measured as a fraction between 0 and 1 of the maximum of the number of rows and columns.
      */
-    void SetMaxSize(const float& maxSize);
+    void SetMaxSize( float maxSize);
 
     /**
      * \brief Sets the window size for adaptive thresholding.
      */
-    void SetBlockSize(const int& blockSize);
+    void SetBlockSize( int blockSize);
 
     /**
      * \brief Sets the amount below the mean intensity of the window to set the threshold at.
      */
-    void SetOffset(const int& offset);
+    void SetOffset( int offset);
 
     //! Gaussian smoothing kernel applied to image (0 == no filter).
     /*! Used when sampling bits. Filtering is a good idea in cases
@@ -73,7 +73,7 @@ namespace AprilTags {
      * harder to decode very small tags. Reasonable values are 0, or
      * [0.8, 1.5].
      */
-    void SetSigma(const float& sigma);
+    void SetSigma( float sigma);
 
     //! Gaussian smoothing kernel applied to image (0 == no filter).
     /*! Used when detecting the outline of the box. It is almost always
@@ -82,7 +82,7 @@ namespace AprilTags {
      * segsigma has been optimized to avoid a redundant filter
      * operation.
      */
-    void SetSegmentationSigma(const float& segmentationSigma);
+    void SetSegmentationSigma( float segmentationSigma);
 
 
   protected:

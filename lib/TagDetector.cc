@@ -28,49 +28,49 @@ using namespace cv;
 namespace AprilTags {
 
   //-----------------------------------------------------------------------------
-  void TagDetector::SetUseHybridMethod(const bool& useHybrid)
+  void TagDetector::SetUseHybridMethod( bool useHybrid)
   {
     m_UseHybrid = useHybrid;
   }
 
 
   //-----------------------------------------------------------------------------
-  void TagDetector::SetMinSize(const float& minSize)
+  void TagDetector::SetMinSize( float minSize)
   {
     m_MinSize = minSize;
   }
 
 
   //-----------------------------------------------------------------------------
-  void TagDetector::SetMaxSize(const float& maxSize)
+  void TagDetector::SetMaxSize( float maxSize)
   {
     m_MaxSize = maxSize;
   }
 
 
   //-----------------------------------------------------------------------------
-  void TagDetector::SetBlockSize(const int& blockSize)
+  void TagDetector::SetBlockSize( int blockSize)
   {
     m_BlockSize = blockSize;
   }
 
 
   //-----------------------------------------------------------------------------
-  void TagDetector::SetOffset(const int& offset)
+  void TagDetector::SetOffset( int offset)
   {
     m_Offset = offset;
   }
 
 
   //-----------------------------------------------------------------------------
-  void TagDetector::SetSigma(const float& sigma)
+  void TagDetector::SetSigma( float sigma)
   {
     m_Sigma = sigma;
   }
 
 
   //-----------------------------------------------------------------------------
-  void TagDetector::SetSegmentationSigma(const float& segmentationSigma)
+  void TagDetector::SetSegmentationSigma( float segmentationSigma)
   {
     m_SegmentationSigma = segmentationSigma;
   }
