@@ -60,3 +60,9 @@ todo:
 - replacing arctan2 by precomputed lookup table
 - converting matrix operations to Eigen (mostly for simplifying code,
   maybe some speedup)
+
+----------------------------
+
+Code now subject to further modification by Aaron Marburg
+(amarburg@apl.washington.edu) trying to find additional performance
+and perhaps address some of Michael's todos from above.
