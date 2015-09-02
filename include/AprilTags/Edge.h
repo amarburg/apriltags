@@ -19,7 +19,7 @@ using std::max;
  */
 class Edge {
 public:
-  static float const minMag;   //!< minimum intensity gradient for an edge to be recognized
+  static float const minMag;        //!< minimum intensity gradient for an edge to be recognized
   static float const maxEdgeCost;   //!< 30 degrees = maximum acceptable difference in local orientations
   static int const WEIGHT_SCALE; // was 10000
   static float const thetaThresh; //!< theta threshold for merging edges
