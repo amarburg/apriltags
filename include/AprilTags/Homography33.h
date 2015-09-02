@@ -13,6 +13,11 @@
 // use stable version of homography recover (opencv, includes refinement step)
 #define STABLE_H
 
+// TODO:  There's a wierd Opencv-to-Eigen impedence mismatch when entering
+//        this class.  Is it strictly necessary?
+//        Esp. under the STABLE_H calculation it just farms the homography
+//        calculation out to OpenCV anyway...
+
 //! Compute 3x3 homography using Direct Linear Transform
 /*
  *
@@ -41,7 +46,7 @@
 class Homography33 {
 public:
   //! Constructor
-  Homography33(const std::pair<float,float> &opticalCenter);
+  Homography33(const Eigen::Vector2f &opticalCenter);
 
 #ifdef STABLE_H
   void setCorrespondences(const std::vector< std::pair<float,float> > &srcPts,
@@ -53,17 +58,18 @@ public:
   //! Note that the returned H matrix does not reflect cxy.
   Eigen::Matrix3d& getH();
 
-  const std::pair<float,float> getCXY() const { return cxy; }
+  const Eigen::Vector2f getCXY() const { return cxy; }
 
   void compute();
 
   std::pair<float,float> project(float worldx, float worldy);
 
 private:
-  std::pair<float,float> cxy;
+  Eigen::Vector2f cxy;
   Eigen::Matrix<double,9,9> fA;
   Eigen::Matrix3d H;
   bool valid;
+
 #ifdef STABLE_H
   std::vector< std::pair<float,float> > srcPts, dstPts;
 #endif

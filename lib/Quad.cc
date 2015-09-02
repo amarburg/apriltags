@@ -6,12 +6,16 @@
 #include "AprilTags/Quad.h"
 #include "AprilTags/Segment.h"
 
+using namespace cv;
+
 namespace AprilTags {
 
 const float Quad::maxQuadAspectRatio = 32;
 
-Quad::Quad(const std::vector< std::pair<float,float> >& p, const std::pair<float,float>& opticalCenter)
-  : quadPoints(p), segments(), observedPerimeter(), homography(opticalCenter) {
+Quad::Quad(const std::vector< std::pair<float,float> >& p,
+           const Point2f &opticalCenter)
+  : quadPoints(p), segments(), observedPerimeter(),
+    homography( Eigen::Vector2f(opticalCenter.x, opticalCenter.y) ) {
 #ifdef STABLE_H
   std::vector< std::pair<float,float> > srcPts;
   srcPts.push_back(std::make_pair(-1, -1));
@@ -51,9 +55,11 @@ std::pair<float,float> Quad::interpolate01(float x, float y) const
   return interpolate(2*x-1, 2*y-1);
 }
 
-void Quad::search(const FloatImage& fImage, std::vector<Segment*>& path,
+void Quad::search(//const cv::Mat &fImage,
+                  std::vector<Segment*>& path,
                   Segment& parent, int depth, std::vector<Quad>& quads,
-                  const std::pair<float,float>& opticalCenter) {
+                  const Point2f& opticalCenter)
+{
   // cout << "Searching segment " << parent.getId() << ", depth=" << depth << ", #children=" << parent.children.size() << endl;
   // terminal depth occurs when we've found four segments.
   if (depth == 4) {
@@ -154,7 +160,7 @@ void Quad::search(const FloatImage& fImage, std::vector<Segment*>& path,
       continue;
     }
     path[depth+1] = &child;
-    search(fImage, path, child, depth+1, quads, opticalCenter);
+    search( path, child, depth+1, quads, opticalCenter);
   }
 }
 

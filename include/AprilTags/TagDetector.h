@@ -15,6 +15,8 @@
 
 namespace AprilTags {
 
+  using cv::Mat;
+
   // Default parameter values
   const int DefaultAdaptiveThresholdRadius = 9;
   const int DefaultAdaptiveThresholdOffset = 5;
@@ -28,12 +30,15 @@ namespace AprilTags {
     // note: TagFamily is instantiated here from TagCodes
     TagDetector(const TagCodes& tagCodes)
       : thisTagFamily(tagCodes),
+        m_UseHybrid( false ),
+        m_MinSize( 0.02 ),
+        m_MaxSize( 0.98 ),
         m_BlockSize( DefaultAdaptiveThresholdRadius ),
         m_Offset( DefaultAdaptiveThresholdOffset ),
         m_Sigma(0),
         m_SegmentationSigma(0.8) {}
 
-  	std::vector<TagDetection> extractTags(const cv::Mat& image);
+  	std::vector<TagDetection> extractTags(const Mat& image);
 
     /**
      * \brief If true will additionally try to extract quads using adaptive thresholding and OpenCV findContours.
@@ -60,28 +65,39 @@ namespace AprilTags {
      */
     void SetOffset(const int& offset);
 
-    /**
-     * \brief Sets the gaussian sigma to be applied to the image in general, so will affect the ability to read off tag patterns.
+    //! Gaussian smoothing kernel applied to image (0 == no filter).
+    /*! Used when sampling bits. Filtering is a good idea in cases
+     * where A) a cheap camera is introducing artifical sharpening, B)
+     * the bayer pattern is creating artifcats, C) the sensor is very
+     * noisy and/or has hot/cold pixels. However, filtering makes it
+     * harder to decode very small tags. Reasonable values are 0, or
+     * [0.8, 1.5].
      */
     void SetSigma(const float& sigma);
 
-    /**
-     * \brief Sets the gaussian sigma used when detecting the tag outline, so will affect the ability to find a tag.
+    //! Gaussian smoothing kernel applied to image (0 == no filter).
+    /*! Used when detecting the outline of the box. It is almost always
+     * useful to have some filtering, since the loss of small details
+     * won't hurt. Recommended value = 0.8. The case where sigma ==
+     * segsigma has been optimized to avoid a redundant filter
+     * operation.
      */
     void SetSegmentationSigma(const float& segmentationSigma);
 
 
   protected:
 
-    /*
-     * If defined, will build DebugTagDetector with debug output
-     * If undefined, these virtuals aren't needed.
-     */
+
   #ifdef BUILD_DEBUG_TAG_DETECTOR
-    virtual void drawOriginalImage( const FloatImage &img )              {;}
-    virtual void drawGaussianLowPassImage( const FloatImage &img )       {;}
-    virtual void drawLineSegments( const vector<Segment> &segments )     {;}
-    virtual void drawQuadImage( const vector<Quad> &quads )              {;}
+    /*
+    * If defined, will create derived DebugTagDetector with debug output
+    * If undefined, these virtuals aren't needed.
+    */
+    virtual void saveOriginalImage( const Mat &img )            {;}
+    virtual void saveBlurredImage( const Mat &img )             {;}
+    virtual void saveMagnitudeImage( const Mat &img )           {;}
+    virtual void saveLineSegments( const vector<Segment> &segments ) {;}
+    virtual void saveQuadImage( const vector<Quad> &quads )     {;}
     virtual void drawQuadBit( const cv::Point2f &pt, const cv::Scalar &color ) {;}
   #endif
 
@@ -92,11 +108,12 @@ namespace AprilTags {
       const GLineSegment2D& gseg,
       const float& length,
       const std::vector<XYWeight>& points,
-      const FloatImage& thetaImage,
-      const FloatImage& magImage,
+      const Mat &thetaImage,
+      const Mat &magImage,
       Segment& seg
     );
 
+    // Parameters
     bool m_UseHybrid;
     float m_MinSize;
     float m_MaxSize;
@@ -115,13 +132,20 @@ namespace AprilTags {
       : TagDetector( tagCodes )  {;}
 
     /* Debug outputs */
-    cv::Mat originalImage, gaussianLowPassImage, lineSegmentsImage, quadImage;
+
+    // These are CV_32FC1
+    Mat savedOriginalImage, savedBlurredImage, savedMagnitudeImage;
+
+    // These are CV_32FC3, generated from the originalImage
+    // but allowing for color annotations
+    Mat originalBGR, savedLineSegmentsImage, savedQuadImage;
 
   protected:
-    virtual void drawOriginalImage( const FloatImage &fimSeg );
-    virtual void drawGaussianLowPassImage( const FloatImage &fimSeg );
-    virtual void drawLineSegments( const vector<Segment> &segments );
-    virtual void drawQuadImage( const vector<Quad> &quads );
+    virtual void saveOriginalImage( const Mat &img );
+    virtual void saveBlurredImage( const Mat &img );
+    virtual void saveMagnitudeImage( const Mat &img );
+    virtual void saveLineSegments( const vector<Segment> &segments );
+    virtual void saveQuadImage( const vector<Quad> &quads );
     virtual void drawQuadBit( const cv::Point2f &pt, const cv::Scalar &color );
   };
 

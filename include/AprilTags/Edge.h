@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "AprilTags/FloatImage.h"
+#include "opencv2/core.hpp"
 
 namespace AprilTags {
 
@@ -46,7 +46,7 @@ public:
 
   //! Calculates and inserts up to four edges into 'edges', a vector of Edges.
   static void calcEdges(float theta0, int x, int y,
-			const FloatImage& theta, const FloatImage& mag,
+			const cv::Mat &theta, const cv::Mat &mag,
 			std::vector<Edge> &edges, size_t &nEdges);
 
   //! Process edges in order of increasing cost, merging clusters if we can do so without exceeding the thetaThresh.

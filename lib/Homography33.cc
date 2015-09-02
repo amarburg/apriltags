@@ -8,7 +8,8 @@
 
 #include "AprilTags/Homography33.h"
 
-Homography33::Homography33(const std::pair<float,float> &opticalCenter) : cxy(opticalCenter), fA(), H(), valid(false) {
+Homography33::Homography33(const Eigen::Vector2f &opticalCenter)
+  : cxy(opticalCenter.x(), opticalCenter.y()), fA(), H(), valid(false) {
   fA.setZero();
   H.setZero();
 }
@@ -28,8 +29,8 @@ void Homography33::setCorrespondences(const std::vector< std::pair<float,float> 
 #else
 void Homography33::addCorrespondence(float worldx, float worldy, float imagex, float imagey) {
   valid = false;
-  imagex -= cxy.first;
-  imagey -= cxy.second;
+  imagex -= cxy.x();
+  imagey -= cxy.y();
 
   /* Here are the rows of matrix A.  We will compute A'*A
    * A[3*i+0][3] = -worldxyh[i][0]*imagexy[i][2];
@@ -169,7 +170,7 @@ void Homography33::compute() {
     sPts.push_back(cv::Point2f(srcPts[i].first, srcPts[i].second));
   }
   for (int i=0; i<4; i++) {
-    dPts.push_back(cv::Point2f(dstPts[i].first - cxy.first, dstPts[i].second - cxy.second));
+    dPts.push_back(cv::Point2f(dstPts[i].first - cxy.x(), dstPts[i].second - cxy.y()));
   }
   cv::Mat homography = cv::findHomography(sPts, dPts);
   for (int c=0; c<3; c++) {
@@ -209,7 +210,7 @@ std::pair<float,float> Homography33::project(float worldx, float worldy) {
   ixy.first = H(0,0)*worldx + H(0,1)*worldy + H(0,2);
   ixy.second = H(1,0)*worldx + H(1,1)*worldy + H(1,2);
   float z = H(2,0)*worldx + H(2,1)*worldy + H(2,2);
-  ixy.first = ixy.first/z + cxy.first;
-  ixy.second = ixy.second/z + cxy.second;
+  ixy.first = ixy.first/z + cxy.x();
+  ixy.second = ixy.second/z + cxy.y();
   return ixy;
 }

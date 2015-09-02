@@ -8,6 +8,8 @@
 
 #include "Homography33.h"
 
+#include <opencv2/core.hpp>
+
 namespace AprilTags {
 
 class FloatImage;
@@ -25,7 +27,7 @@ public:
   //! Constructor
   /*! (x,y) are the optical center of the camera, which is
    *   needed to correctly compute the homography. */
-  Quad(const std::vector< std::pair<float,float> >& p, const std::pair<float,float>& opticalCenter);
+  Quad(const std::vector< std::pair<float,float> >& p, const cv::Point2f& opticalCenter);
 
   //! Interpolate given that the lower left corner of the lower left cell is at (-1,-1) and the upper right corner of the upper right cell is at (1,1).
   std::pair<float,float> interpolate(float x, float y) const;
@@ -56,9 +58,12 @@ public:
    *  @param parent the first segment in the quad
    *  @param depth how deep in the search are we?
    */
-  static void search(const FloatImage& fImage, std::vector<Segment*>& path,
-                     Segment& parent, int depth, std::vector<Quad>& quads,
-                     const std::pair<float,float>& opticalCenter);
+  static void search(//const cv::Mat &fImage,
+                     std::vector<Segment*>& path,
+                     Segment& parent,
+                     int depth, 
+                     std::vector<Quad>& quads,
+                     const cv::Point2f& opticalCenter);
 
 #ifdef INTERPOLATE
  private:

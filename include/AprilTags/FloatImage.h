@@ -33,7 +33,7 @@ public:
 
   float get(int x, int y) const { return pixels[y*width + x]; }
   void set(int x, int y, float v) { pixels[y*width + x] = v; }
-  
+
   int getWidth() const { return width; }
   int getHeight() const { return height; }
   int getNumFloatImagePixels() const { return width*height; }

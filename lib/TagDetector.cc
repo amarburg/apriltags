@@ -22,8 +22,8 @@
 #include "AprilTags/TagDetector.h"
 
 
-
 using namespace std;
+using namespace cv;
 
 namespace AprilTags {
 
@@ -81,8 +81,8 @@ namespace AprilTags {
     const GLineSegment2D& gseg,
     const float& length,
     const std::vector<XYWeight>& points,
-    const FloatImage& fimTheta,
-    const FloatImage& fimMag,
+    const Mat& fimTheta,
+    const Mat& fimMag,
     Segment& seg
   )
   {
@@ -106,8 +106,8 @@ namespace AprilTags {
     {
       XYWeight xyw = points[i];
 
-      float theta = fimTheta.get((int) xyw.x, (int) xyw.y);
-      float mag = fimMag.get((int) xyw.x, (int) xyw.y);
+      float theta = fimTheta.at<float>((int) xyw.y, (int) xyw.x );
+      float mag = fimMag.at<float>( (int) xyw.y, (int) xyw.x );
 
       // err *should* be +M_PI/2 for the correct winding, but if we
       // got the wrong winding, it'll be around -M_PI/2.
@@ -137,24 +137,30 @@ namespace AprilTags {
 
 
   //-----------------------------------------------------------------------------
-  std::vector<TagDetection> TagDetector::extractTags(const cv::Mat& image) {
+  std::vector<TagDetection> TagDetector::extractTags(const cv::Mat& inImage) {
 
-    // convert to internal AprilTags image (todo: slow, change internally to OpenCV)
-    int width = image.cols;
-    int height = image.rows;
-    AprilTags::FloatImage fimOrig(width, height);
-    int i = 0;
-    for (int y=0; y<height; y++) {
-      for (int x=0; x<width; x++) {
-        fimOrig.set(x, y, image.data[i]/255.);
-        i++;
-      }
-    }
-    std::pair<int,int> opticalCenter(width/2, height/2);
+    // Follow the OpenCV design pattern of issuing a fatal error when
+    // Mats are not of the appropriate type.
+    CV_Assert( !inImage.empty() );
+    CV_Assert(  inImage.channels() == 1 );
+    CV_Assert( (inImage.type() == CV_32FC1) || (inImage.type() == CV_8UC1) );
 
-#ifdef BUILD_DEBUG_TAG_DETECTOR
-  drawOriginalImage( fimOrig );
-#endif
+    int width = inImage.size().width;
+    int height = inImage.size().height;
+    Point2f opticalCenter( width/2, height/2 );
+
+    // AprilTags::FloatImage fimOrig(width, height);
+    // int i = 0;
+    // for (int y=0; y<height; y++) {
+    //   for (int x=0; x<width; x++) {
+    //     fimOrig.set(x, y, image.data[i]/255.);
+    //     i++;
+    //   }
+    // }
+    // std::pair<int,int> opticalCenter(width/2, height/2);
+
+
+
 
 #ifdef DEBUG_APRIL
 #if 0
@@ -201,9 +207,41 @@ namespace AprilTags {
 #endif
 
   //================================================================
-  // Step one: preprocess image (convert to grayscale) and low pass if necessary
+  // Step one: preprocess image (convert to Float) and low pass if necessary
 
-  FloatImage fim = fimOrig;
+  // Initial Gaussian smoothing and convert to CV_32F if necessary
+  Mat blurredImage;
+
+  if( inImage.type() == CV_8UC1 ) {
+    inImage.convertTo( blurredImage, CV_32FC1, 1.0/255.0 );
+  }
+
+#ifdef BUILD_DEBUG_TAG_DETECTOR
+  saveOriginalImage( blurredImage.empty() ? inImage : blurredImage );
+#endif
+
+  if (m_Sigma > 0) {
+    int filtsz = ((int) max(3.0f, 3 * m_Sigma)) | 1;
+
+    // Is blurredImage has been converted, I can do the filtering in-place
+    // Otherwise the GaussianBlur performs the copy for me
+    GaussianBlur( blurredImage.empty() ? inImage : blurredImage,
+                  blurredImage, Size(filtsz, filtsz), m_Sigma, m_Sigma );
+
+  } else if( blurredImage.empty() ){
+    // Only hit this case if not blurring and inImage is already a 32FC1
+    blurredImage = inImage;
+  }
+
+  //   std::vector<float> filt = Gaussian::makeGaussianFilter(sigma, filtsz);
+  //   fim.filterFactoredCentered(filt, filt);
+  //   GaussianBlur( originalImage, originalImage )
+  // }
+
+#ifdef BUILD_DEBUG_TAG_DETECTOR
+  saveBlurredImage( blurredImage );
+#endif
+
 
   //! Gaussian smoothing kernel applied to image (0 == no filter).
   /*! Used when sampling bits. Filtering is a good idea in cases
@@ -213,7 +251,7 @@ namespace AprilTags {
    * harder to decode very small tags. Reasonable values are 0, or
    * [0.8, 1.5].
    */
-  float sigma = m_Sigma;
+//  float sigma = m_Sigma;
 
   //! Gaussian smoothing kernel applied to image (0 == no filter).
   /*! Used when detecting the outline of the box. It is almost always
@@ -222,13 +260,9 @@ namespace AprilTags {
    * segsigma has been optimized to avoid a redundant filter
    * operation.
    */
-  float segSigma = m_SegmentationSigma;
+//  float segSigma = m_SegmentationSigma;
 
-  if (sigma > 0) {
-    int filtsz = ((int) max(3.0f, 3*sigma)) | 1;
-    std::vector<float> filt = Gaussian::makeGaussianFilter(sigma, filtsz);
-    fim.filterFactoredCentered(filt, filt);
-  }
+
 
   //================================================================
   // Step two: Compute the local gradient. We store the direction and magnitude.
@@ -236,45 +270,60 @@ namespace AprilTags {
   // break up segments, causing us to miss Quads. It is useful to do a Gaussian
   // low pass on this step even if we don't want it for encoding.
 
-  FloatImage fimSeg;
-  if (segSigma > 0) {
-    if (segSigma == sigma) {
-      fimSeg = fim;
-    } else {
+  Mat segmentationImage;
+
+  if ( (m_SegmentationSigma > 0)  && (m_SegmentationSigma != m_Sigma)) {
+
+    int filtsz = ((int) max(3.0f, 3 * m_SegmentationSigma)) | 1;
+    GaussianBlur( blurredImage, segmentationImage, Size(filtsz, filtsz), m_SegmentationSigma, m_SegmentationSigma );
+
       // blur anew
-      int filtsz = ((int) max(3.0f, 3*segSigma)) | 1;
-      std::vector<float> filt = Gaussian::makeGaussianFilter(segSigma, filtsz);
-      fimSeg = fimOrig;
-      fimSeg.filterFactoredCentered(filt, filt);
-    }
+
+      // std::vector<float> filt = Gaussian::makeGaussianFilter(segSigma, filtsz);
+      // fimSeg = fimOrig;
+      // fimSeg.filterFactoredCentered(filt, filt);
+
   } else {
-    fimSeg = fimOrig;
+    segmentationImage = blurredImage;
   }
 
-#ifdef BUILD_DEBUG_TAG_DETECTOR
-  drawGaussianLowPassImage( fimSeg );
-#endif
+  Mat dx, dy;
 
-  FloatImage fimTheta(fimSeg.getWidth(), fimSeg.getHeight());
-  FloatImage fimMag(fimSeg.getWidth(), fimSeg.getHeight());
+  // For now, use the 1x3 / 3x1 Sobel operator s.t.
+  // the blur (above) is independent from the derivative calculation.
+  // Probably more efficient to combine the two.
 
-  #pragma omp parallel for
-  for (int y = 1; y < fimSeg.getHeight()-1; y++) {
-    for (int x = 1; x < fimSeg.getWidth()-1; x++) {
-      float Ix = fimSeg.get(x+1, y) - fimSeg.get(x-1, y);
-      float Iy = fimSeg.get(x, y+1) - fimSeg.get(x, y-1);
+  Sobel( segmentationImage, dx, CV_32F, 1, 0, 1 );
+  Sobel( segmentationImage, dy, CV_32F, 0, 1, 1 );
 
-      float mag = Ix*Ix + Iy*Iy;
-#if 0 // kaess: fast version, but maybe less accurate?
-      float theta = MathUtil::fast_atan2(Iy, Ix);
-#else
-      float theta = atan2(Iy, Ix);
-#endif
+  Mat magnitude( dx.size(), CV_32F ),
+      angle( dx.size(), CV_32F );
+  cartToPolar( dx, dy, magnitude, angle );
 
-      fimTheta.set(x, y, theta);
-      fimMag.set(x, y, mag);
-    }
-  }
+  // FloatImage fimTheta(fimSeg.getWidth(), fimSeg.getHeight());
+  // FloatImage fimMag(fimSeg.getWidth(), fimSeg.getHeight());
+
+  #ifdef BUILD_DEBUG_TAG_DETECTOR
+    saveMagnitudeImage( magnitude );
+  #endif
+
+//   #pragma omp parallel for
+//   for (int y = 1; y < fimSeg.getHeight()-1; y++) {
+//     for (int x = 1; x < fimSeg.getWidth()-1; x++) {
+//       float Ix = fimSeg.get(x+1, y) - fimSeg.get(x-1, y);
+//       float Iy = fimSeg.get(x, y+1) - fimSeg.get(x, y-1);
+//
+//       float mag = Ix*Ix + Iy*Iy;
+// #if 0 // kaess: fast version, but maybe less accurate?
+//       float theta = MathUtil::fast_atan2(Iy, Ix);
+// #else
+//       float theta = atan2(Iy, Ix);
+// #endif
+//
+//       fimTheta.set(x, y, theta);
+//       fimMag.set(x, y, mag);
+//     }
+//   }
 
 
 
@@ -282,9 +331,9 @@ namespace AprilTags {
   // Step three. Extract edges by grouping pixels with similar
   // thetas together. This is a greedy algorithm: we start with
   // the most similar pixels.  We use 4-connectivity.
-  UnionFindSimple uf(fimSeg.getWidth()*fimSeg.getHeight());
+  UnionFindSimple uf( width * height );
 
-  vector<Edge> edges(width*height*4);
+  vector<Edge> edges( width*height*4 );
   size_t nEdges = 0;
 
   // Bounds on the thetas assigned to this group. Note that because
@@ -300,21 +349,24 @@ namespace AprilTags {
     float * mmin = &storage[width*height*2];
     float * mmax = &storage[width*height*3];
 
-    for (int y = 0; y+1 < height; y++) {
-      for (int x = 0; x+1 < width; x++) {
+    Point p(0,0);
+    for (; p.y < (height-1); ++p.y) {
+      for ( p.x = 0; p.x < (width-1); ++p.x ) {
+        int offset = p.y*width + p.x;
 
-        float mag0 = fimMag.get(x,y);
+        float mag0 = magnitude.at<float>(p);
         if (mag0 < Edge::minMag)
           continue;
-        mmax[y*width+x] = mag0;
-        mmin[y*width+x] = mag0;
 
-        float theta0 = fimTheta.get(x,y);
-        tmin[y*width+x] = theta0;
-        tmax[y*width+x] = theta0;
+        mmax[offset] = mag0;
+        mmin[offset] = mag0;
+
+        float theta0 = angle.at<float>(p);
+        tmin[offset] = theta0;
+        tmax[offset] = theta0;
 
         // Calculates then adds edges to 'vector<Edge> edges'
-        Edge::calcEdges(theta0, x, y, fimTheta, fimMag, edges, nEdges);
+        Edge::calcEdges(theta0, p.x, p.y, angle, magnitude, edges, nEdges);
 
         // XXX Would 8 connectivity help for rotated tags?
         // Probably not much, so long as input filtering hasn't been disabled.
@@ -331,12 +383,14 @@ namespace AprilTags {
   // We will soon fit lines (segments) to these points.
 
   map<int, vector<XYWeight> > clusters;
-  for (int y = 0; y+1 < fimSeg.getHeight(); y++) {
-    for (int x = 0; x+1 < fimSeg.getWidth(); x++) {
-      if (uf.getSetSize(y*fimSeg.getWidth()+x) < Segment::minimumSegmentSize)
-	continue;
+  Point p( 0, 0);
+  for ( ; p.y < (height-1);  ++p.y ) {
+    for ( p.x = 0; p.x < (width-1); ++p.x ) {
+      int offset = p.y*width + p.x;
 
-      int rep = (int) uf.getRepresentative(y*fimSeg.getWidth()+x);
+      if (uf.getSetSize(offset) < Segment::minimumSegmentSize)	continue;
+
+      int rep = (int) uf.getRepresentative(offset);
 
       map<int, vector<XYWeight> >::iterator it = clusters.find(rep);
       if ( it == clusters.end() ) {
@@ -344,7 +398,8 @@ namespace AprilTags {
       	it = clusters.find(rep);
       }
       vector<XYWeight> &points = it->second;
-      points.push_back(XYWeight(x,y,fimMag.get(x,y)));
+
+      points.push_back(XYWeight(p.x,p.y,magnitude.at<float>(p)));
     }
   }
 
@@ -362,12 +417,12 @@ namespace AprilTags {
       continue;
 
     Segment seg;
-    this->ExtractSegment(gseg, length, points, fimTheta, fimMag, seg);
+    this->ExtractSegment(gseg, length, points, angle, magnitude, seg);
     segments.push_back(seg);
   }
 
 #ifdef BUILD_DEBUG_TAG_DETECTOR
-  drawLineSegments( segments );
+  saveLineSegments( segments );
 #endif
 
   // Step six: For each segment, find segments that begin where this segment ends.
@@ -421,19 +476,24 @@ namespace AprilTags {
   vector<Segment*> tmp(5);
   for (unsigned int i = 0; i < segments.size(); i++) {
     tmp[0] = &segments[i];
-    Quad::search(fimOrig, tmp, segments[i], 0, quads, opticalCenter);
+    Quad::search(tmp, segments[i], 0, quads, opticalCenter); //fimOrig
   }
 
   //================================================================
   // Step 7b. Inspired by ARUCO, OpenCV.
   // We perform thresholding followed by OpenCV routines to extract
   // tags, and add to the list of Quads.
-  if (m_UseHybrid && image.type() ==CV_8UC1)
+  if (m_UseHybrid)
   {
-    int height_ = fimOrig.getHeight();
-    int width_  = fimOrig.getWidth();
-    cv::Mat thresholded(height_, width_, CV_8UC1);
-    cv::adaptiveThreshold ( image, thresholded, 255, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY_INV, m_BlockSize, m_Offset);
+    // adaptiveThreshold requires an 8UC1 image... after all that trouble to
+    // produce a 32FC1 image
+    Mat image8Bit = inImage;
+    if( inImage.type() != CV_8UC1 ) inImage.convertTo( image8Bit, CV_8UC1, 255. );
+
+    // int height_ = fimOrig.getHeight();
+    // int width_  = fimOrig.getWidth();
+    cv::Mat thresholded( inImage.size(), CV_8UC1);
+    cv::adaptiveThreshold ( image8Bit, thresholded, 255, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY_INV, m_BlockSize, m_Offset);
 
     int minSize = m_MinSize*std::max(thresholded.cols,thresholded.rows)*4;
     int maxSize = m_MaxSize*std::max(thresholded.cols,thresholded.rows)*4;
@@ -479,7 +539,7 @@ namespace AprilTags {
   } // if grey, 1 channel image
 
 #ifdef BUILD_DEBUG_TAG_DETECTOR
-  drawQuadImage( quads );
+  saveQuadImage( quads );
 #endif
 
   //================================================================
@@ -501,15 +561,18 @@ namespace AprilTags {
       for (int ix = -1; ix <= dd; ix++) {
         float x = (ix + 0.5f) / dd;
         std::pair<float,float> pxy = quad.interpolate01(x, y);
+
         int irx = (int) (pxy.first + 0.5);
         int iry = (int) (pxy.second + 0.5);
-        if (irx < 0 || irx >= width || iry < 0 || iry >= height)
-        continue;
-        float v = fim.get(irx, iry);
-        if (iy == -1 || iy == dd || ix == -1 || ix == dd)
-        whiteModel.addObservation(x, y, v);
-        else if (iy == 0 || iy == (dd-1) || ix == 0 || ix == (dd-1))
-        blackModel.addObservation(x, y, v);
+        if (irx < 0 || irx >= width || iry < 0 || iry >= height) continue;
+
+        float v = blurredImage.at<float>(iry,irx);
+
+        if (iy == -1 || iy == dd || ix == -1 || ix == dd) {
+          whiteModel.addObservation(x, y, v);
+        } else if (iy == 0 || iy == (dd-1) || ix == 0 || ix == (dd-1)){
+          blackModel.addObservation(x, y, v);
+        }
       }
     }
 
@@ -528,7 +591,7 @@ namespace AprilTags {
           continue;
         }
         float threshold = (blackModel.interpolate(x,y) + whiteModel.interpolate(x,y)) * 0.5f;
-        float v = fim.get(irx, iry);
+        float v = blurredImage.at<float>(iry, irx );
         tagCode = tagCode << 1;
         if ( v > threshold) tagCode |= 1;
 
@@ -550,7 +613,10 @@ namespace AprilTags {
 
       // compute the homography (and rotate it appropriately)
       thisTagDetection.homography = quad.homography.getH();
-      thisTagDetection.hxy = quad.homography.getCXY();
+
+      // TODO.  Ugh.  Impedence mismatch
+      Eigen::Vector2f oc = quad.homography.getCXY();
+      thisTagDetection.hxy = std::pair<float,float>( oc.x(), oc.y() );
 
       float c = std::cos(thisTagDetection.rotation*(float)M_PI/2);
       float s = std::sin(thisTagDetection.rotation*(float)M_PI/2);
@@ -580,7 +646,7 @@ namespace AprilTags {
       }
 
       for (int i=0; i< 4; i++)
-	thisTagDetection.p[i] = quad.quadPoints[(i+bestRot) % 4];
+	      thisTagDetection.p[i] = quad.quadPoints[(i+bestRot) % 4];
 
       if (thisTagDetection.good) {
       	thisTagDetection.cxy = quad.interpolate01(0.5f, 0.5f);
@@ -636,65 +702,51 @@ namespace AprilTags {
   return goodDetections;
 }
 
+/*
+ *
+ *
+ */
+
 #ifdef BUILD_DEBUG_TAG_DETECTOR
 
-void DebugTagDetector::drawOriginalImage( const FloatImage &fimSeg )
+void DebugTagDetector::saveOriginalImage( const Mat &img )
 {
-  int height = fimSeg.getHeight();
-  int width  = fimSeg.getWidth();
+  img.copyTo( savedOriginalImage );
 
-  originalImage.create(height, width, CV_8UC3);
-
-  for (int y=0; y<height; y++) {
-    for (int x=0; x<width; x++) {
-      //        float vf = fimMag.get(x,y);
-
-      float vf = fimSeg.get(x,y);
-
-      int val = (int)(vf * 255.);
-      //if ((val & 0xffff00) != 0) { printf("problem... %i\n", val); }
-
-      originalImage.at<cv::Vec3b>(y, x) = cv::Vec3b( val, val, val );
-    }
-  }
+  // Convenience temporary
+  cvtColor( savedOriginalImage, originalBGR, COLOR_GRAY2BGR );
 }
 
-void DebugTagDetector::drawGaussianLowPassImage( const FloatImage &fimSeg )
+void DebugTagDetector::saveBlurredImage( const Mat &img )
 {
-  int height = fimSeg.getHeight();
-  int width  = fimSeg.getWidth();
-
-  gaussianLowPassImage.create(height, width, CV_8UC3);
-
-  for (int y=0; y<height; y++) {
-    for (int x=0; x<width; x++) {
-      //        float vf = fimMag.get(x,y);
-      float vf = fimSeg.get(x,y);
-
-      int val = (int)(vf * 255.);
-      //if ((val & 0xffff00) != 0) { printf("problem... %i\n", val); }
-
-      gaussianLowPassImage.at<cv::Vec3b>(y, x) = cv::Vec3b( val, val, val );
-    }
-  }
+  img.copyTo( savedBlurredImage );
 }
 
-void DebugTagDetector::drawLineSegments( const vector<Segment> &segments )
+void DebugTagDetector::saveMagnitudeImage( const Mat &img )
 {
-  gaussianLowPassImage.copyTo( lineSegmentsImage );
+  double mn, mx;
+  minMaxLoc( img, &mn, &mx );
+
+  savedMagnitudeImage = img * 1.0/mx;
+}
+
+void DebugTagDetector::saveLineSegments( const vector<Segment> &segments )
+{
+  // Boost back to color imagery for better annotation
+  originalBGR.copyTo( savedLineSegmentsImage );
 
   for( vector<Segment>::const_iterator it = segments.begin(); it!=segments.end(); it++ ) {
     long int r = random();
-    cv::line(lineSegmentsImage,
+    cv::line(savedLineSegmentsImage,
               cv::Point2f(it->getX0(), it->getY0()),
               cv::Point2f(it->getX1(), it->getY1()),
               cv::Scalar(r%0xff,(r%0xff00)>>8,(r%0xff0000)>>16,0) );
   }
 }
 
-void DebugTagDetector::drawQuadImage( const vector<Quad> &quads )
+void DebugTagDetector::saveQuadImage( const vector<Quad> &quads )
 {
-  gaussianLowPassImage.copyTo( quadImage );
+  originalBGR.copyTo( savedQuadImage );
 
     // int height_ = fimOrig.getHeight();
     // int width_  = fimOrig.getWidth();
@@ -709,25 +761,28 @@ void DebugTagDetector::drawQuadImage( const vector<Quad> &quads )
     //   }
     // }
 
+const cv::Scalar Red( 0, 0, 255, 0 ),
+                 Green( 0, 255, 0, 0 );
+
   for (unsigned int qi = 0; qi < quads.size(); qi++ ) {
     const Quad &quad = quads[qi];
     std::pair<float, float> p1 = quad.quadPoints[0];
     std::pair<float, float> p2 = quad.quadPoints[1];
     std::pair<float, float> p3 = quad.quadPoints[2];
     std::pair<float, float> p4 = quad.quadPoints[3];
-    cv::line(quadImage, cv::Point2f(p1.first, p1.second), cv::Point2f(p2.first, p2.second), cv::Scalar(0,0,255,0) );
-    cv::line(quadImage, cv::Point2f(p2.first, p2.second), cv::Point2f(p3.first, p3.second), cv::Scalar(0,0,255,0) );
-    cv::line(quadImage, cv::Point2f(p3.first, p3.second), cv::Point2f(p4.first, p4.second), cv::Scalar(0,0,255,0) );
-    cv::line(quadImage, cv::Point2f(p4.first, p4.second), cv::Point2f(p1.first, p1.second), cv::Scalar(0,0,255,0) );
+    cv::line(savedQuadImage, cv::Point2f(p1.first, p1.second), cv::Point2f(p2.first, p2.second), Red );
+    cv::line(savedQuadImage, cv::Point2f(p2.first, p2.second), cv::Point2f(p3.first, p3.second), Red );
+    cv::line(savedQuadImage, cv::Point2f(p3.first, p3.second), cv::Point2f(p4.first, p4.second), Red );
+    cv::line(savedQuadImage, cv::Point2f(p4.first, p4.second), cv::Point2f(p1.first, p1.second), Red );
 
     p1 = quad.interpolate(-1,-1);
     p2 = quad.interpolate(-1,1);
     p3 = quad.interpolate(1,1);
     p4 = quad.interpolate(1,-1);
-    cv::circle(quadImage, cv::Point2f(p1.first, p1.second), 3, cv::Scalar(0,255,0,0), 1);
-    cv::circle(quadImage, cv::Point2f(p2.first, p2.second), 3, cv::Scalar(0,255,0,0), 1);
-    cv::circle(quadImage, cv::Point2f(p3.first, p3.second), 3, cv::Scalar(0,255,0,0), 1);
-    cv::circle(quadImage, cv::Point2f(p4.first, p4.second), 3, cv::Scalar(0,255,0,0), 1);
+    cv::circle(savedQuadImage, cv::Point2f(p1.first, p1.second), 3, Green, 1);
+    cv::circle(savedQuadImage, cv::Point2f(p2.first, p2.second), 3, Green, 1);
+    cv::circle(savedQuadImage, cv::Point2f(p3.first, p3.second), 3, Green, 1);
+    cv::circle(savedQuadImage, cv::Point2f(p4.first, p4.second), 3, Green, 1);
   }
 }
 
@@ -735,7 +790,7 @@ void DebugTagDetector::drawQuadImage( const vector<Quad> &quads )
 // But simply overlays a point on the quadImage
 void DebugTagDetector::drawQuadBit( const cv::Point2f &pt, const cv::Scalar &color )
 {
-  cv::circle(quadImage, pt, 1, color, 2);
+  cv::circle(savedQuadImage, pt, 1, color, 2);
 }
 
 #endif

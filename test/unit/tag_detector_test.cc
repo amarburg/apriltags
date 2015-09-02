@@ -37,6 +37,13 @@ TEST( TagDetectorTest, DefaultConfiguration ) {
 
 #ifdef BUILD_DEBUG_TAG_DETECTOR
 
+static void write32FC1( const string &filename, const Mat &img )
+{
+  Mat out;
+  img.convertTo( out, CV_8UC1, 255. );
+  imwrite( filename, out );
+}
+
 TEST( DebugTagDetectorTest, DefaultConfiguration ) {
   DebugTagDetector detector( tagCodes36h11 );
 
@@ -44,15 +51,17 @@ TEST( DebugTagDetectorTest, DefaultConfiguration ) {
 
   std::vector<TagDetection> tags = detector.extractTags( inputImage );
 
-  EXPECT_EQ( detector.originalImage.size(), inputImage.size() );
-  EXPECT_EQ( detector.gaussianLowPassImage.size(), inputImage.size() );
-  EXPECT_EQ( detector.lineSegmentsImage.size(), inputImage.size() );
-  EXPECT_EQ( detector.quadImage.size(), inputImage.size() );
+  EXPECT_EQ( detector.savedOriginalImage.size(), inputImage.size() );
+  EXPECT_EQ( detector.savedBlurredImage.size(), inputImage.size() );
+  EXPECT_EQ( detector.savedMagnitudeImage.size(), inputImage.size() );
+  EXPECT_EQ( detector.savedLineSegmentsImage.size(), inputImage.size() );
+  EXPECT_EQ( detector.savedQuadImage.size(), inputImage.size() );
 
-  // imwrite("/tmp/original.jpg", detector.originalImage );
-  // imwrite("/tmp/low_pass_image.jpg", detector.gaussianLowPassImage );
-  // imwrite("/tmp/line_segments_image.jpg", detector.lineSegmentsImage );
-  // imwrite("/tmp/quad_image.jpg", detector.quadImage );
+  write32FC1("/tmp/original.jpg", detector.savedOriginalImage );
+  write32FC1("/tmp/low_pass_image.jpg", detector.savedBlurredImage );
+  write32FC1("/tmp/magnitude.jpg", detector.savedMagnitudeImage );
+  write32FC1("/tmp/line_segment_image.jpg", detector.savedLineSegmentsImage );
+  write32FC1("/tmp/quad_image.jpg", detector.savedQuadImage );
 
   validate_36h11_tags( tags );
 }
