@@ -5,7 +5,7 @@
 
 namespace AprilTags {
 
-float const Edge::minMag = 0.06324555320336758; // 0.004f;  The original code calculated magnitude squared, 
+float const Edge::minMag = 0.06324555320336758; // 0.004f;  The original code calculated magnitude squared,
 float const Edge::maxEdgeCost = 30.f * float(M_PI) / 180.f;
 int const Edge::WEIGHT_SCALE = 100;
 float const Edge::thetaThresh = 100;
@@ -32,36 +32,28 @@ void Edge::calcEdges(float theta0, int x, int y,
   // horizontal edge
   int cost1 = edgeCost(theta0, theta.at<float>(y,x+1), mag.at<float>(y,x+1));
   if (cost1 >= 0) {
-    edges[nEdges].cost = cost1;
-    edges[nEdges].pixelIdxA = thisPixel;
-    edges[nEdges].pixelIdxB = y*width+x+1;
+    edges[nEdges].set( cost1, thisPixel, y*width+x+1 );
     ++nEdges;
   }
 
   // vertical edge
   int cost2 = edgeCost(theta0, theta.at<float>(y+1, x), mag.at<float>(y+1, x));
   if (cost2 >= 0) {
-    edges[nEdges].cost = cost2;
-    edges[nEdges].pixelIdxA = thisPixel;
-    edges[nEdges].pixelIdxB = (y+1)*width+x;
+    edges[nEdges].set( cost2, thisPixel, (y+1)*width+x );
     ++nEdges;
   }
 
   // downward diagonal edge
   int cost3 = edgeCost(theta0, theta.at<float>(y+1,x+1), mag.at<float>(y+1,x+1));
   if (cost3 >= 0) {
-    edges[nEdges].cost = cost3;
-    edges[nEdges].pixelIdxA = thisPixel;
-    edges[nEdges].pixelIdxB = (y+1)*width+x+1;
+    edges[nEdges].set( cost3, thisPixel, (y+1)*width+x+1 );
     ++nEdges;
   }
 
   // updward diagonal edge
   int cost4 = (x == 0) ? -1 : edgeCost(theta0, theta.at<float>(y+1,x-1), mag.at<float>(y+1,x-1));
   if (cost4 >= 0) {
-    edges[nEdges].cost = cost4;
-    edges[nEdges].pixelIdxA = thisPixel;
-    edges[nEdges].pixelIdxB = (y+1)*width+x-1;
+    edges[nEdges].set( cost4, thisPixel, (y+1)*width+x-1 );
     ++nEdges;
   }
 }

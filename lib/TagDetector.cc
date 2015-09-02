@@ -331,6 +331,10 @@ namespace AprilTags {
   // Step three. Extract edges by grouping pixels with similar
   // thetas together. This is a greedy algorithm: we start with
   // the most similar pixels.  We use 4-connectivity.
+  //
+  // TODO:  At this point the edge collection code is requiring approx 50%
+  // of the total computational cost
+
   UnionFindSimple uf( width * height );
 
   vector<Edge> edges( width*height*4 );
@@ -355,8 +359,7 @@ namespace AprilTags {
         int offset = p.y*width + p.x;
 
         float mag0 = magnitude.at<float>(p);
-        if (mag0 < Edge::minMag)
-          continue;
+        if (mag0 < Edge::minMag) continue;
 
         mmax[offset] = mag0;
         mmin[offset] = mag0;

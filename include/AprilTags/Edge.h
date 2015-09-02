@@ -32,6 +32,9 @@ public:
   //! Constructor
   Edge() : pixelIdxA(), pixelIdxB(), cost() {}
 
+  void set( int cst, int pixelA, int pixelB )
+  { cost = cst; pixelIdxA = pixelA; pixelIdxB = pixelB; }
+
   //! Compare edges based on cost
   inline bool operator< (const Edge &other) const { return (cost < other.cost); }
 
@@ -40,7 +43,7 @@ public:
     intensity gradient at both pixels is above threshold.  The edge
     cost is proportional to the difference in the local orientation at
     the two pixels.  Lower cost is better.  A cost of -1 means there
-    is no edge here (intensity gradien fell below threshold).
+    is no edge here (intensity gradient fell below threshold).
    */
   static int edgeCost(float  theta0, float theta1, float mag1);
 
