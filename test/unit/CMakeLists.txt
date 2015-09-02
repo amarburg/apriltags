@@ -1,4 +1,3 @@
-enable_testing()
 find_package( GTest REQUIRED )
 
 include_directories( ${GTEST_INCLUDE_DIRS}
@@ -13,5 +12,5 @@ target_link_libraries( apriltags_unit_test
           ${OpenCV_LIBS}
           apriltags )
 
-add_test( NAME AprilTagsUnitTest
-          COMMAND apriltags_unit_test )
+# Don't use ctest, instead just execture the Google test binaries
+add_custom_target( test ${CMAKE_CURRENT_BINARY_DIR}/apriltags_unit_test )
