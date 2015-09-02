@@ -26,8 +26,8 @@ static void validate_36h11_tags( const std::vector<TagDetection> &tags )
 struct BenchmarkData {
 public:
   BenchmarkData( void )
-    : duration( 0 ), numberOfTags( 0 ) {;}
-  unsigned int duration, numberOfTags;
+    : ms( 0 ), numberOfTags( 0 ) {;}
+  unsigned int ms, numberOfTags;
 };
 
 // This isn't a unit test per se, but tests that the tag TagDetector
@@ -46,7 +46,7 @@ TEST( TagDetectorPerf, DefaultConfiguration ) {
     std::vector<TagDetection> tags = detector.extractTags( inputImage );
     unsigned int ms = round( (double)(cv::getTickCount() - t) / getTickFrequency() * 1000.0 );
 
-    data[rep].duration = ms;
+    data[rep].ms = ms;
     data[rep].numberOfTags = tags.size();
 
     validate_36h11_tags( tags );
@@ -55,13 +55,13 @@ TEST( TagDetectorPerf, DefaultConfiguration ) {
   float mean = 0, var = 0;
   float meanTags = 0;
   for( unsigned int rep = 0; rep < Repetitions; ++rep ) {
-    mean += data[rep].duration;
+    mean += data[rep].ms;
     meanTags += data[rep].numberOfTags;
   }
   mean /= Repetitions;
   meanTags /= Repetitions;
 
-  for( unsigned int rep = 0; rep < Repetitions; ++rep ) { var += powf(data[rep].duration - mean, 2); }
+  for( unsigned int rep = 0; rep < Repetitions; ++rep ) { var += powf(data[rep].ms - mean, 2); }
   var /= Repetitions;
 
   cout << "For " << Repetitions << " reps on a " << inputImage.size().width << " x " << inputImage.size().height << " image, with an average of " << meanTags << " tags per image." << endl;
