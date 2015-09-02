@@ -18,3 +18,10 @@ Mean: 4631 ms, stddev: 277.693m
 
 Though I did disable m_UseHybrid by default.  That might be saving some time
 as well.
+
+For comparison, at the commit, with Release build I get:
+
+For 5 reps on a 2592 x 3872 image, with an average of 80 tags per image.
+Mean: 1237.6 ms, stddev: 193.922
+
+Still pretty slow.
