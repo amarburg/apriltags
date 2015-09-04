@@ -19,7 +19,10 @@ public:
   std::vector<unsigned long long> codes;
 
   TagCodes(int bits, int minHammingDistance,
-          const unsigned long long* codesA, int num) {;}
+          const unsigned long long* codesA, int num)
+          : bits(bits), minHammingDistance(minHammingDistance),
+            codes(codesA, codesA+num) // created vector for all entries of codes
+      {;}
 };
 
 //! Generic class for all tag encoding families
