@@ -4,7 +4,8 @@ include_directories( ${GTEST_INCLUDE_DIRS}
                      ${CMAKE_SOURCE_DIR}/test/data )
 
 add_executable( apriltags_unit_test
-              tag_detector_test.cc )
+              tag_detector_test.cc
+              corners_test.cc )
 
 target_link_libraries( apriltags_unit_test
           ${GTEST_BOTH_LIBRARIES}

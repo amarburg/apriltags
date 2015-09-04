@@ -2,6 +2,8 @@
 
 #include "AprilTags/TagFamily.h"
 
+#include <opencv2/core.hpp>
+
 /**
 
 // example of instantiation of tag family:
@@ -25,10 +27,11 @@ TagFamily *tag36h11 = new TagFamily(tagCodes36h11);
 
 namespace AprilTags {
 
+
 TagFamily::TagFamily(const TagCodes& tagCodes)
   : blackBorder(1), bits(tagCodes.bits), dimension((int)std::sqrt((float)bits)),
     minimumHammingDistance(tagCodes.minHammingDistance),
-    errorRecoveryBits(1), codes() {
+    errorRecoveryBits(1), codes(), corners( tagCodes.codes.size(), cv::Mat() ) {
   if ( bits != dimension*dimension )
     cerr << "Error: TagFamily constructor called with bits=" << bits << "; must be a square number!" << endl;
   codes = tagCodes.codes;
@@ -110,6 +113,17 @@ void TagFamily::decode(TagDetection& det, unsigned long long rCode) const {
   det.obsCode = rCode;
   det.code = bestCode;
 }
+
+// Eager generate the corners
+const cv::Mat &TagFamily::corner( int idx )
+{
+  if( corners[idx].empty() ) {
+    corners[idx] = Corners::makeCornerMat( codes[idx], dimension, blackBorder );
+  }
+
+  return corners[idx];
+}
+
 
 void TagFamily::printHammingDistances() const {
   vector<int> hammings(dimension*dimension+1);

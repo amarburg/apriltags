@@ -17,12 +17,9 @@ public:
   int bits;
   int minHammingDistance;
   std::vector<unsigned long long> codes;
-public:
- TagCodes(int bits, int minHammingDistance,
-          const unsigned long long* codesA, int num)
-   : bits(bits), minHammingDistance(minHammingDistance),
-    codes(codesA, codesA+num) // created vector for all entries of codesA
-      {}
+
+  TagCodes(int bits, int minHammingDistance,
+          const unsigned long long* codesA, int num) {;}
 };
 
 //! Generic class for all tag encoding families
@@ -57,6 +54,9 @@ public:
   /*  The corresponding fields of TagDetection will be filled in. */
   void decode(TagDetection& det, unsigned long long rCode) const;
 
+  //! Corner matrices are eager-generated */
+  const cv::Mat &corner( int idx );
+
   //! Prints the hamming distances of the tag codes.
   void printHammingDistances() const;
 
@@ -86,6 +86,7 @@ public:
 
   //! The array of the codes. The id for a code is its index.
   std::vector<unsigned long long> codes;
+  std::vector<cv::Mat> corners;
 
   static const int  popCountTableShift = 12;
   static const unsigned int popCountTableSize = 1 << popCountTableShift;

@@ -8,6 +8,8 @@
 #include <utility>
 #include <vector>
 
+#include "Corners.h"
+
 namespace AprilTags {
 
 struct TagDetection {
