@@ -16,6 +16,7 @@ namespace AprilTags {
 
     static cv::Mat makeTagMat( unsigned long long code, int dim, int blackBorder = 1, int whiteBoard = 1 );
     static cv::Mat makeCornerMat( unsigned long long code, int dim, int blackBorder = 1 );
+    static cv::Mat drawCornerMat( const cv::Mat &corners );
 
   private:
     Corners( void ) {;}
