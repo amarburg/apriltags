@@ -24,7 +24,7 @@ TEST( CornersTest, MakeTagMat ) {
 
   Mat huge;
   const double scale = 10.0;
-  cv::resize(tag, huge, Size(), scale, scale );
+  cv::resize( 255*tag, huge, Size(), scale, scale );
 
   imwrite("/tmp/tag.jpg", huge);
 }
