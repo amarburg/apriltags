@@ -1,7 +1,7 @@
 AprilTags
 =========
 
- * Continuous integration (https://travis-ci.org/amarburg/apriltags.svg)
+ * Continuous integration [https://travis-ci.org/amarburg/apriltags](https://travis-ci.org/amarburg/apriltags.svg)
 
 Detects [AprilTags](https://april.eecs.umich.edu/wiki/index.php/AprilTags)
 (2D bar codes) in images; reports unique ID of each
