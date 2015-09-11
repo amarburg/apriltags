@@ -32,7 +32,7 @@ is something like:
 
 
 TODO:
-----
+-----
 
  * Backwards compatibility with OpenCV 2.x
 
