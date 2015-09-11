@@ -6,5 +6,8 @@ env:
 #  - CMAKE_VARS="-D CMAKE_BUILD_TYPE=Release -D USE_OPENMP=ON" OMP_NUM_THREADS=2
 #  - CMAKE_VARS="-D CMAKE_BUILD_TYPE=Debug -D USE_OPENMP=OFF" OMP_NUM_THREADS=2
 #  - CMAKE_VARS="-D CMAKE_BUILD_TYPE=Release -D USE_OPENMP=OFF" OMP_NUM_THREADS=2
-install: sudo .travis/dependencies.sh
+matrix:
+	include:
+		- install: sudo .travis/opencv3-dependencies.sh
+		- install: sudo .travis/opencv2-dependencies.sh
 script: .travis/build.sh
