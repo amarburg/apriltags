@@ -23,9 +23,7 @@ It is packaged as a standard [CMake](http://www.cmake.org/) package.    Building
 is something like:
 
     git clone https://github.com/amarburg/apriltags.git
-    cd apriltags
-    mkdir build
-    cd build
+    cd apriltags && mkdir build && cd build
     cmake ..
     make
     make test              (for unit tests)
@@ -34,6 +32,7 @@ is something like:
 
 
 TODO:
+----
 
  * Backwards compatibility with OpenCV 2.x
 
