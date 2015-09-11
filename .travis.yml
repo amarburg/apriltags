@@ -4,5 +4,5 @@ compiler:
 env:
   - CMAKE_VARS="-D CMAKE_BUILD_TYPE=Debug -D USE_OPENMP=ON" OMP_NUM_THREADS=2 OPENCV=3
 #  - CMAKE_VARS="-D CMAKE_BUILD_TYPE=Debug -D USE_OPENMP=ON" OMP_NUM_THREADS=2 OPENCV=2
-install: sudo .travis/dependencies.sh
+install: sudo -E .travis/dependencies.sh
 script: .travis/build.sh
