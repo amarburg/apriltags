@@ -1,6 +1,6 @@
 #!/bin/sh
 
-COMMON_PKGS="libeigen3-dev"
+COMMON_PKGS="libeigen3-dev cmake"
 
 if [ -z "$OPENCV" ]; then
   echo "Must set environment variable OPENCV"
