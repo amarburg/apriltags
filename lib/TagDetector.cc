@@ -580,7 +580,7 @@ namespace AprilTags {
     }
 
     bool bad = false;
-    unsigned long long tagCode = 0;
+    uint64_t tagCode = 0;
     for ( int iy = thisTagFamily.dimension-1; iy >= 0; iy-- ) {
       float y = (thisTagFamily.blackBorder + iy + 0.5f) / dd;
       for (int ix = 0; ix < thisTagFamily.dimension; ix++ ) {

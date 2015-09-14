@@ -6,7 +6,7 @@
 
 namespace AprilTags {
 
-const unsigned long long t36h11_other[] =
+const uint64_t t36h11_other[] =
   { 0xd5d628584LL, 0xd97f18b49LL, 0xdd280910eLL, 0xe479e9c98LL, 0xebcbca822LL, 0xf31dab3acLL, 0x056a5d085LL, 0x10652e1d4LL,
    0x17b70ed5eLL, 0x22b1dfeadLL, 0x265ad0472LL, 0x34fe91b86LL, 0x3ff962cd5LL, 0x43a25329aLL, 0x474b4385fLL, 0x4e9d243e9LL,
    0x5246149aeLL, 0x5997f5538LL, 0x683bb6c4cLL, 0x6be4a7211LL, 0x7e3158eeaLL, 0x81da494afLL, 0x858339a74LL, 0x8cd51a5feLL,
