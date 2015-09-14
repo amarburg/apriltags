@@ -25,8 +25,8 @@ add_library(apriltags ${SOURCE_FILES})
 
 target_link_libraries(apriltags ${OpenCV_LIBS}) #-pg) #-fopenmp)
 
-## Slightly obtuse syntax.  Travis uses CMake 2.8.7
-add_definitions( --enable-c99 -pedantic -Wall -Werror )
+## Slightly obtuse syntax.  Travis uses CMake 2.8.7 and GCC 4.6.3
+add_definitions( -Wall -Werror )
 #add_definitions( -std=c++11 -pedantic -Wall -Werror )
 
 file(GLOB HEADER_FILES ${CMAKE_SOURCE_DIR}/include/Apriltags/*)
