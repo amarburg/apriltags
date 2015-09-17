@@ -557,7 +557,7 @@ namespace AprilTags {
 
     // Find a threshold
     GrayModel blackModel, whiteModel;
-    const int dd = 2 * thisTagFamily.blackBorder + thisTagFamily.dimension;
+    const int dd = 2 * thisTagFamily.blackBorder + thisTagFamily.dimension();
 
     for (int iy = -1; iy <= dd; iy++) {
       float y = (iy + 0.5f) / dd;
@@ -581,9 +581,9 @@ namespace AprilTags {
 
     bool bad = false;
     uint64_t tagCode = 0;
-    for ( int iy = thisTagFamily.dimension-1; iy >= 0; iy-- ) {
+    for ( int iy = thisTagFamily.dimension()-1; iy >= 0; iy-- ) {
       float y = (thisTagFamily.blackBorder + iy + 0.5f) / dd;
-      for (int ix = 0; ix < thisTagFamily.dimension; ix++ ) {
+      for (int ix = 0; ix < thisTagFamily.dimension(); ix++ ) {
         float x = (thisTagFamily.blackBorder + ix + 0.5f) / dd;
         std::pair<float,float> pxy = quad.interpolate01(x, y);
         int irx = (int) (pxy.first + 0.5);

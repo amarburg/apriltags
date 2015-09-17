@@ -12,54 +12,54 @@ namespace AprilTags {
 
 //===================================================================
 
-  Mat Corners::makeTagMat( const TagCodes &family, int which, int blackBorder, int whiteBorder )
-  {
-int dim = family.bits;
+Mat Corners::makeTagMat( const TagCodes &family, int which, int blackBorder, int whiteBorder )
+{
+  int dim = family.dim;
 
-Code_t code = family[which];
+  Code_t code = family[which];
 
-    int bwBorder = blackBorder + whiteBorder;
-    int edge = dim + 2*(bwBorder);
+  int bwBorder = blackBorder + whiteBorder;
+  int edge = dim + 2*(bwBorder);
 
-    const int WHITE = 1, BLACK = 0;
+  const int WHITE = 1, BLACK = 0;
 
-    // To avoid going nuts, draw the actual tag with border ...
-    // with a 1-pixel white border around the outside
-    Mat tag( edge, edge, CV_8UC1, Scalar(0) );
+  // To avoid going nuts, draw the actual tag with border ...
+  // with a 1-pixel white border around the outside
+  Mat tag( edge, edge, CV_8UC1, Scalar(0) );
 
-// printf("The code is : %016llx\n", code );
+  // printf("The code is : %016llx\n", code );
 
-    for( Point p(0,0); p.y < edge; ++p.y ) {
-      for( p.x = 0; p.x < edge; ++p.x ) {
+  for( Point p(0,0); p.y < edge; ++p.y ) {
+    for( p.x = 0; p.x < edge; ++p.x ) {
 
-        if( (p.y < whiteBorder) || (p.y >=  edge - whiteBorder) ||
-            (p.x < whiteBorder) || (p.x >=  edge - whiteBorder) ) {
-          tag.at<unsigned char>(p) = WHITE;
-        } else if( (p.y < bwBorder) || (p.y >= edge - bwBorder) ||
-                   (p.x < bwBorder) || (p.x >= edge - bwBorder) ) {
-          tag.at<unsigned char>(p) = BLACK;
-        } else {
+      if( (p.y < whiteBorder) || (p.y >=  edge - whiteBorder) ||
+      (p.x < whiteBorder) || (p.x >=  edge - whiteBorder) ) {
+        tag.at<unsigned char>(p) = WHITE;
+      } else if( (p.y < bwBorder) || (p.y >= edge - bwBorder) ||
+      (p.x < bwBorder) || (p.x >= edge - bwBorder) ) {
+        tag.at<unsigned char>(p) = BLACK;
+      } else {
 
-          // In image coordinates, the MSB bit of the code is the upper left (Y = 0, X = 0)
+        // In image coordinates, the MSB bit of the code is the upper left (Y = 0, X = 0)
 
-          int offset = p.x-bwBorder + dim*( p.y - bwBorder );
-          unsigned long long mask = 1ll << (dim*dim - offset - 1);
+        int offset = p.x-bwBorder + dim*( p.y - bwBorder );
+        unsigned long long mask = 1ll << (dim*dim - offset - 1);
 
-// printf("p.x = %d, p.y = %d, offset = %d, bit = %d, %c\n", p.x-bwBorder, p.y-bwBorder, offset, dim*dim-offset-1, (code&mask) ? '1' : '0' );
-// printf("Mask = %016llx\n", mask);
+        // printf("p.x = %d, p.y = %d, offset = %d, bit = %d, %c\n", p.x-bwBorder, p.y-bwBorder, offset, dim*dim-offset-1, (code&mask) ? '1' : '0' );
+        // printf("Mask = %016llx\n", mask);
 
-          if( (code & mask) )
-            tag.at<unsigned char>(p) = WHITE;
-          else
-            tag.at<unsigned char>(p) = BLACK;
-
-        }
+        if( (code & mask) )
+        tag.at<unsigned char>(p) = WHITE;
+        else
+        tag.at<unsigned char>(p) = BLACK;
 
       }
+
     }
+  }
 
   return tag;
-  }
+}
 
 
 // Lower 4 bytes represent the four corners:

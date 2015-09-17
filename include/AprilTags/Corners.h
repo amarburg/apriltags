@@ -16,7 +16,10 @@ namespace AprilTags {
       Corners( const cv::Mat &corners );
 
     static cv::Mat makeTagMat( const TagCodes &family, int which, int blackBorder = 1, int whiteBoard = 1 );
+
+    static cv::Mat makeCornerMat( const Code_t code, int dim, int blackBorder = 1 );
     static cv::Mat makeCornerMat( const TagCodes &family, int which, int blackBorder = 1 );
+
     static cv::Mat drawCornerMat( const cv::Mat &corners );
 
   private:

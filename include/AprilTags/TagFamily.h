@@ -18,25 +18,31 @@ typedef uint64_t Code_t;
 
 class TagCodes {
 public:
-  int bits, dim;
+  int dim;
   int minHammingDistance;
 
   std::vector<Code_t> codes;
 
 public:
- TagCodes(int bits, int minHammingDistance, const Code_t * codesA, int num)
-   : bits(bits), dim( floor(sqrt(bits))), minHammingDistance(minHammingDistance),
-    codes(codesA, codesA+num) // created vector for all entries of codesA
-      { //TODO:  More graceful handling of this pathological condition
-        assert( bits = dim*dim );
-      }
+
+  // n.b. the change in API from Kaess' version.  TagCodes are now specified by
+  // their dimension (edge length), not the number of bits.   bits = dimension^2
+  // but it made far more sense to specify dim and square it then specify
+  // bits and sqrt it.  Also allows for rectangular tags in the future...
+ TagCodes(int d, int minHammingDistance, const Code_t *codesA, int num)
+   : dim( d ),
+     minHammingDistance(minHammingDistance),
+     codes(codesA, codesA+num) // created vector for all entries of codesA
+      { ; }
 
   Code_t operator[]( unsigned int which ) const
   {
     // TODO: Bounds checking currently a fatal error.
-    assert( which < dim );
+    assert( which < codes.size() );
     return codes[which];
   }
+
+  unsigned int size( void ) const { return codes.size(); }
 
 };
 
@@ -82,10 +88,10 @@ public:
   int blackBorder;
 
   //! Number of bits in the tag. Must be n^2.
-  int bits;
+  int bits() const { return _code.dim * _code.dim; }
 
   //! Dimension of tag. e.g. for 16 bits, dimension=4. Must be sqrt(bits).
-  int dimension;
+  int dimension() const { return _code.dim; }
 
   //! Minimum hamming distance between any two codes.
   /*  Accounting for rotational ambiguity? The code can recover
@@ -102,8 +108,10 @@ public:
    */
   int errorRecoveryBits;
 
-  //! The array of the codes. The id for a code is its index.
-  std::vector<Code_t> codes;
+  //! Specific code (codebook?) in use
+  const TagCodes &_code;
+
+//  std::vector<Code_t> codes;
   std::vector<cv::Mat> corners;
 
   static const int  popCountTableShift = 12;

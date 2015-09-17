@@ -12,5 +12,6 @@ target_link_libraries( apriltags_unit_test
           ${OpenCV_LIBS}
           apriltags )
 
-# Don't use ctest, instead just execture the Google test binaries
-add_custom_target( test ${CMAKE_CURRENT_BINARY_DIR}/apriltags_unit_test )
+# Don't use ctest, instead just exectute the Google test binaries
+add_custom_target( test ${CMAKE_CURRENT_BINARY_DIR}/apriltags_unit_test
+                    DEPENDS apriltags_unit_test )

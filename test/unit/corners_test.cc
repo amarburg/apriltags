@@ -17,9 +17,9 @@ const TagCodes &code( AprilTags::tagCodes36h11 );
 // Tests the code which makes
 TEST( CornersTest, MakeTagMat ) {
 
-  const int edge = (int)std::sqrt((float)code.bits);
+  const int edge = code.dim;
 
-  Mat tag( Corners::makeTagMat( code, WhichTag, edge ));
+  Mat tag( Corners::makeTagMat( code, WhichTag ));
 
   EXPECT_EQ( 6, edge );
   EXPECT_EQ( edge+4, tag.rows );
@@ -34,10 +34,10 @@ TEST( CornersTest, MakeTagMat ) {
 
 TEST( CornersTest, MakeCornerMat ) {
 
-  const int edge = (int)std::sqrt((float)code.bits);
+  const int edge = code.dim;
   EXPECT_EQ( 6, edge );
 
-  Mat corners( Corners::makeCornerMat( code, WhichTag, edge ));
+  Mat corners( Corners::makeCornerMat( code, WhichTag ));
 
   EXPECT_EQ( edge+3, corners.rows );
   EXPECT_EQ( edge+3, corners.cols );

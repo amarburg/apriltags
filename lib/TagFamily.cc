@@ -31,12 +31,14 @@ namespace AprilTags {
 
 
 TagFamily::TagFamily(const TagCodes& tagCodes)
-  : blackBorder(1), bits(tagCodes.bits), dimension((int)std::sqrt((float)bits)),
+  : blackBorder(1),
+    //dimension( tagCodes.dimension ),
     minimumHammingDistance(tagCodes.minHammingDistance),
-    errorRecoveryBits(1), codes(), corners( tagCodes.codes.size(), cv::Mat() ) {
-  if ( bits != dimension*dimension )
-    cerr << "Error: TagFamily constructor called with bits=" << bits << "; must be a square number!" << endl;
-  codes = tagCodes.codes;
+    errorRecoveryBits(1), //codes(),
+    _code( tagCodes ),
+    corners( _code.size(), cv::Mat() )
+{
+  ;
 }
 
 void TagFamily::setErrorRecoveryBits(int b) {
@@ -93,18 +95,18 @@ void TagFamily::decode(TagDetection& det, uint64_t rCode) const {
 
   uint64_t rCodes[4];
   rCodes[0] = rCode;
-  rCodes[1] = rotate90(rCodes[0], dimension);
-  rCodes[2] = rotate90(rCodes[1], dimension);
-  rCodes[3] = rotate90(rCodes[2], dimension);
+  rCodes[1] = rotate90(rCodes[0], dimension() );
+  rCodes[2] = rotate90(rCodes[1], dimension() );
+  rCodes[3] = rotate90(rCodes[2], dimension() );
 
-  for (unsigned int id = 0; id < codes.size(); id++) {
+  for (unsigned int id = 0; id < _code.size(); id++) {
     for (unsigned int rot = 0; rot < 4; rot++) {
-      int thisHamming = hammingDistance(rCodes[rot], codes[id]);
+      int thisHamming = hammingDistance(rCodes[rot], _code[id]);
       if (thisHamming < bestHamming) {
-	bestHamming = thisHamming;
-	bestRotation = rot;
-	bestId = id;
-	bestCode = codes[id];
+      	bestHamming = thisHamming;
+      	bestRotation = rot;
+      	bestId = id;
+      	bestCode = _code[id];
       }
     }
   }
@@ -119,26 +121,25 @@ void TagFamily::decode(TagDetection& det, uint64_t rCode) const {
 // Eager-generate the corners
 const cv::Mat &TagFamily::corner( int idx )
 {
-  if( corners[idx].empty() ) {
-    corners[idx] = Corners::makeCornerMat( codes, idx, blackBorder );
-  }
+  if( corners[idx].empty() )
+     corners[idx] = Corners::makeCornerMat( _code, idx, blackBorder );
 
   return corners[idx];
 }
 
 
 void TagFamily::printHammingDistances() const {
-  vector<int> hammings(dimension*dimension+1);
-  for (unsigned i = 0; i < codes.size(); i++) {
-    uint64_t r0 = codes[i];
-    uint64_t r1 = rotate90(r0, dimension);
-    uint64_t r2 = rotate90(r1, dimension);
-    uint64_t r3 = rotate90(r2, dimension);
-    for (unsigned int j = i+1; j < codes.size(); j++) {
-      int d = min(min(hammingDistance(r0, codes[j]),
-		      hammingDistance(r1, codes[j])),
-		  min(hammingDistance(r2, codes[j]),
-		      hammingDistance(r3, codes[j])));
+  vector<int> hammings(dimension()*dimension()+1);
+  for (unsigned i = 0; i < _code.size(); i++) {
+    uint64_t r0 = _code[i];
+    uint64_t r1 = rotate90(r0, dimension() );
+    uint64_t r2 = rotate90(r1, dimension() );
+    uint64_t r3 = rotate90(r2, dimension() );
+    for (unsigned int j = i+1; j < _code.size(); j++) {
+      int d = min(min(hammingDistance(r0, _code[j]),
+		                  hammingDistance(r1, _code[j])),
+		              min(hammingDistance(r2, _code[j]),
+		                  hammingDistance(r3, _code[j])));
       hammings[d]++;
     }
   }
