@@ -45,9 +45,9 @@ void TagFamily::setErrorRecoveryFraction(float v) {
   errorRecoveryBits = (int) (((int) (minimumHammingDistance-1)/2)*v);
 }
 
-unsigned long long TagFamily::rotate90(unsigned long long w, int d) {
-  unsigned long long wr = 0;
-  const unsigned long long oneLongLong = 1;
+uint64_t TagFamily::rotate90(uint64_t w, int d) {
+  uint64_t wr = 0;
+  const uint64_t oneLongLong = 1;
 
   for (int r = d-1; r>=0; r--) {
     for (int c = 0; c<d; c++) {
@@ -61,11 +61,11 @@ unsigned long long TagFamily::rotate90(unsigned long long w, int d) {
   return wr;
 }
 
-int TagFamily::hammingDistance(unsigned long long a, unsigned long long b) {
+int TagFamily::hammingDistance(uint64_t a, uint64_t b) {
   return popCount(a^b);
 }
 
-unsigned char TagFamily::popCountReal(unsigned long long w) {
+unsigned char TagFamily::popCountReal(uint64_t w) {
   unsigned char cnt = 0;
   while (w != 0) {
     w &= (w-1);
@@ -74,7 +74,7 @@ unsigned char TagFamily::popCountReal(unsigned long long w) {
   return cnt;
 }
 
-int TagFamily::popCount(unsigned long long w) {
+int TagFamily::popCount(uint64_t w) {
   int count = 0;
   while (w != 0) {
     count += popCountTable[(unsigned int) (w & (popCountTableSize-1))];
@@ -83,13 +83,13 @@ int TagFamily::popCount(unsigned long long w) {
   return count;
 }
 
-void TagFamily::decode(TagDetection& det, unsigned long long rCode) const {
+void TagFamily::decode(TagDetection& det, uint64_t rCode) const {
   int  bestId = -1;
   int  bestHamming = INT_MAX;
   int  bestRotation = 0;
-  unsigned long long bestCode = 0;
+  uint64_t bestCode = 0;
 
-  unsigned long long rCodes[4];
+  uint64_t rCodes[4];
   rCodes[0] = rCode;
   rCodes[1] = rotate90(rCodes[0], dimension);
   rCodes[2] = rotate90(rCodes[1], dimension);
@@ -128,10 +128,10 @@ const cv::Mat &TagFamily::corner( int idx )
 void TagFamily::printHammingDistances() const {
   vector<int> hammings(dimension*dimension+1);
   for (unsigned i = 0; i < codes.size(); i++) {
-    unsigned long long r0 = codes[i];
-    unsigned long long r1 = rotate90(r0, dimension);
-    unsigned long long r2 = rotate90(r1, dimension);
-    unsigned long long r3 = rotate90(r2, dimension);
+    uint64_t r0 = codes[i];
+    uint64_t r1 = rotate90(r0, dimension);
+    uint64_t r2 = rotate90(r1, dimension);
+    uint64_t r3 = rotate90(r2, dimension);
     for (unsigned int j = i+1; j < codes.size(); j++) {
       int d = min(min(hammingDistance(r0, codes[j]),
 		      hammingDistance(r1, codes[j])),

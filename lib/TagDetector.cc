@@ -498,8 +498,8 @@ namespace AprilTags {
     cv::Mat thresholded( inImage.size(), CV_8UC1);
     cv::adaptiveThreshold ( image8Bit, thresholded, 255, cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY_INV, m_BlockSize, m_Offset);
 
-    int minSize = m_MinSize*std::max(thresholded.cols,thresholded.rows)*4;
-    int maxSize = m_MaxSize*std::max(thresholded.cols,thresholded.rows)*4;
+    unsigned int minSize = m_MinSize*std::max(thresholded.cols,thresholded.rows)*4;
+    unsigned int maxSize = m_MaxSize*std::max(thresholded.cols,thresholded.rows)*4;
     std::vector<std::vector<cv::Point> > contours;
     std::vector<cv::Vec4i> hierarchy;
 
@@ -580,7 +580,7 @@ namespace AprilTags {
     }
 
     bool bad = false;
-    unsigned long long tagCode = 0;
+    uint64_t tagCode = 0;
     for ( int iy = thisTagFamily.dimension-1; iy >= 0; iy-- ) {
       float y = (thisTagFamily.blackBorder + iy + 0.5f) / dd;
       for (int ix = 0; ix < thisTagFamily.dimension; ix++ ) {

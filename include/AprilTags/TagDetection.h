@@ -24,10 +24,10 @@ struct TagDetection {
   bool good;
 
   //! Observed code
-  long long obsCode;
+  uint64_t obsCode;
 
   //! Matched code
-  long long code;
+  uint64_t code;
 
   //! What was the ID of the detected tag?
   int id;

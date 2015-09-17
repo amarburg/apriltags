@@ -24,7 +24,10 @@ file(GLOB SOURCE_FILES "lib/*.cc")
 add_library(apriltags ${SOURCE_FILES})
 
 target_link_libraries(apriltags ${OpenCV_LIBS}) #-pg) #-fopenmp)
-target_compile_options( apriltags PUBLIC -std=c++11 -pedantic -Wall -Werror )
+
+## Slightly obtuse syntax.  Travis uses CMake 2.8.7 and GCC 4.6.3
+add_definitions( -Wall -Werror )
+#add_definitions( -std=c++11 -pedantic -Wall -Werror )
 
 file(GLOB HEADER_FILES ${CMAKE_SOURCE_DIR}/include/Apriltags/*)
 install(PROGRAMS ${HEADER_FILES} DESTINATION include/AprilTags COMPONENT applications)
@@ -37,13 +40,13 @@ install(TARGETS apriltags
 ## Configurable options
 option( BUILD_DETECTOR_WITH_DEBUG "Build TagDetector with debug outputs" ON )
 if( BUILD_DETECTOR_WITH_DEBUG )
-  target_compile_definitions( apriltags PUBLIC BUILD_DEBUG_TAG_DETECTOR )
+  add_definitions( -DBUILD_DEBUG_TAG_DETECTOR )
 endif()
 
 option( USE_OPENMP "Build with OpenMP" ON )
 if( USE_OPENMP )
-  target_compile_definitions( apriltags PUBLIC USE_OPENMP )
-  target_compile_options(     apriltags PUBLIC "-fopenmp" )
+  add_definitions( -DUSE_OPENMP )
+  add_definitions( "-fopenmp" )
 endif()
 
 ## Performance and Unit testing

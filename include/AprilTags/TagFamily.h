@@ -7,22 +7,37 @@
 #include <vector>
 #include <map>
 
+#include <assert.h>
+
 #include "AprilTags/TagDetection.h"
 using namespace std;
 
 namespace AprilTags {
 
+typedef uint64_t Code_t;
+
 class TagCodes {
 public:
-  int bits;
+  int bits, dim;
   int minHammingDistance;
-  std::vector<unsigned long long> codes;
 
-  TagCodes(int bits, int minHammingDistance,
-          const unsigned long long* codesA, int num)
-          : bits(bits), minHammingDistance(minHammingDistance),
-            codes(codesA, codesA+num) // created vector for all entries of codes
-      {;}
+  std::vector<Code_t> codes;
+
+public:
+ TagCodes(int bits, int minHammingDistance, const Code_t * codesA, int num)
+   : bits(bits), dim( floor(sqrt(bits))), minHammingDistance(minHammingDistance),
+    codes(codesA, codesA+num) // created vector for all entries of codesA
+      { //TODO:  More graceful handling of this pathological condition
+        assert( bits = dim*dim );
+      }
+
+  Code_t operator[]( unsigned int which ) const
+  {
+    // TODO: Bounds checking currently a fatal error.
+    assert( which < dim );
+    return codes[which];
+  }
+
 };
 
 //! Generic class for all tag encoding families
@@ -43,19 +58,19 @@ public:
    *  5 4 3  ==>  1 4 7 ==>  3 4 5    (rotate90 applied twice)
    *  2 1 0       0 3 6      6 7 8
    */
-  static unsigned long long rotate90(unsigned long long w, int d);
+  static uint64_t rotate90(uint64_t w, int d);
 
-  //! Computes the hamming distance between two unsigned long longs.
-  static int hammingDistance(unsigned long long a, unsigned long long b);
+  //! Computes the hamming distance between two uint64_ts.
+  static int hammingDistance(uint64_t a, uint64_t b);
 
-  //! How many bits are set in the unsigned long long?
-  static unsigned char popCountReal(unsigned long long w);
+  //! How many bits are set in the uint64_t?
+  static unsigned char popCountReal(uint64_t w);
 
-  static int popCount(unsigned long long w);
+  static int popCount(uint64_t w);
 
   //! Given an observed tag with code 'rCode', try to recover the id.
   /*  The corresponding fields of TagDetection will be filled in. */
-  void decode(TagDetection& det, unsigned long long rCode) const;
+  void decode( TagDetection& det, uint64_t rCode ) const;
 
   //! Corner matrices are eager-generated */
   const cv::Mat &corner( int idx );
@@ -88,7 +103,7 @@ public:
   int errorRecoveryBits;
 
   //! The array of the codes. The id for a code is its index.
-  std::vector<unsigned long long> codes;
+  std::vector<Code_t> codes;
   std::vector<cv::Mat> corners;
 
   static const int  popCountTableShift = 12;
