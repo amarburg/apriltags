@@ -8,6 +8,8 @@
 #include <utility>
 #include <vector>
 
+#include "AprilTags/Types.h"
+
 namespace AprilTags {
 
 struct TagDetection {
@@ -22,10 +24,10 @@ struct TagDetection {
   bool good;
 
   //! Observed code
-  uint64_t obsCode;
+  Code_t obsCode;
 
   //! Matched code
-  uint64_t code;
+  Code_t code;
 
   //! What was the ID of the detected tag?
   int id;

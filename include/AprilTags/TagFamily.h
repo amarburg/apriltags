@@ -9,6 +9,7 @@
 
 #include <assert.h>
 
+#include "AprilTags/Types.h"
 #include "AprilTags/TagDetection.h"
 using namespace std;
 
@@ -64,19 +65,19 @@ public:
    *  5 4 3  ==>  1 4 7 ==>  3 4 5    (rotate90 applied twice)
    *  2 1 0       0 3 6      6 7 8
    */
-  static uint64_t rotate90(uint64_t w, int d);
+  static Code_t rotate90(Code_t w, int d);
 
   //! Computes the hamming distance between two uint64_ts.
-  static int hammingDistance(uint64_t a, uint64_t b);
+  static int hammingDistance(Code_t a, Code_t b);
 
   //! How many bits are set in the uint64_t?
-  static unsigned char popCountReal(uint64_t w);
+  static unsigned char popCountReal(Code_t w);
 
-  static int popCount(uint64_t w);
+  static int popCount(Code_t w);
 
   //! Given an observed tag with code 'rCode', try to recover the id.
   /*  The corresponding fields of TagDetection will be filled in. */
-  void decode( TagDetection& det, uint64_t rCode ) const;
+  void decode( TagDetection& det, Code_t rCode ) const;
 
   //! Corner matrices are eager-generated */
   const cv::Mat &corner( int idx );
