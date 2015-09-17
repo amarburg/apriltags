@@ -10,13 +10,16 @@ using namespace cv;
 #include "AprilTags/Tag36h11.h"
 using namespace AprilTags;
 
+
+const int WhichTag = 34;
+const TagCodes &code( AprilTags::tagCodes36h11 );
+
+// Tests the code which makes
 TEST( CornersTest, MakeTagMat ) {
-  const int WhichTag = 34;
-  const TagCodes &code( AprilTags::tagCodes36h11 );
 
   const int edge = (int)std::sqrt((float)code.bits);
 
-  Mat tag( Corners::makeTagMat( code.codes[ WhichTag ], edge ));
+  Mat tag( Corners::makeTagMat( code, WhichTag, edge ));
 
   EXPECT_EQ( 6, edge );
   EXPECT_EQ( edge+4, tag.rows );
@@ -30,13 +33,11 @@ TEST( CornersTest, MakeTagMat ) {
 }
 
 TEST( CornersTest, MakeCornerMat ) {
-  const int WhichTag = 34;
-  const TagCodes &code( AprilTags::tagCodes36h11 );
 
   const int edge = (int)std::sqrt((float)code.bits);
   EXPECT_EQ( 6, edge );
 
-  Mat corners( Corners::makeCornerMat( code.codes[ WhichTag ], edge ));
+  Mat corners( Corners::makeCornerMat( code, WhichTag, edge ));
 
   EXPECT_EQ( edge+3, corners.rows );
   EXPECT_EQ( edge+3, corners.cols );

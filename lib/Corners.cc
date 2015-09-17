@@ -12,8 +12,11 @@ namespace AprilTags {
 
 //===================================================================
 
-  Mat Corners::makeTagMat( unsigned long long code, int dim, int blackBorder, int whiteBorder )
+  Mat Corners::makeTagMat( const TagCodes &family, int which, int blackBorder, int whiteBorder )
   {
+int dim = family.bits;
+
+Code_t code = family[which];
 
     int bwBorder = blackBorder + whiteBorder;
     int edge = dim + 2*(bwBorder);
@@ -77,9 +80,10 @@ static unsigned char CornerCodeLUT[] = {
     0x20, 0x80, 0x10, 0x40, 0x10, 0x40, 0x40, 0x00
 };
 
-  cv::Mat Corners::makeCornerMat( unsigned long long code, int dim, int blackBorder )
+  cv::Mat Corners::makeCornerMat( const TagCodes &family, int which, int blackBorder )
   {
-    Mat tag( makeTagMat(code, dim, blackBorder, 1) );
+    Mat tag( makeTagMat(family, which, blackBorder, 1) );
+
     int edge = tag.rows - 1;
 
     Mat corners( edge, edge, CV_8UC1 );

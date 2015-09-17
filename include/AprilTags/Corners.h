@@ -7,15 +7,16 @@
 // storing the corners, but it gets the process
 // going.
 
+#include "TagFamily.h"
+
 namespace AprilTags {
 
   class Corners {
     public:
       Corners( const cv::Mat &corners );
 
-
-    static cv::Mat makeTagMat( unsigned long long code, int dim, int blackBorder = 1, int whiteBoard = 1 );
-    static cv::Mat makeCornerMat( unsigned long long code, int dim, int blackBorder = 1 );
+    static cv::Mat makeTagMat( const TagCodes &family, int which, int blackBorder = 1, int whiteBoard = 1 );
+    static cv::Mat makeCornerMat( const TagCodes &family, int which, int blackBorder = 1 );
     static cv::Mat drawCornerMat( const cv::Mat &corners );
 
   private:

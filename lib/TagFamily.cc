@@ -4,6 +4,8 @@
 
 #include <opencv2/core.hpp>
 
+#include "AprilTags/Corners.h"
+
 /**
 
 // example of instantiation of tag family:
@@ -114,11 +116,11 @@ void TagFamily::decode(TagDetection& det, uint64_t rCode) const {
   det.code = bestCode;
 }
 
-// Eager generate the corners
+// Eager-generate the corners
 const cv::Mat &TagFamily::corner( int idx )
 {
   if( corners[idx].empty() ) {
-    corners[idx] = Corners::makeCornerMat( codes[idx], dimension, blackBorder );
+    corners[idx] = Corners::makeCornerMat( codes, idx, blackBorder );
   }
 
   return corners[idx];
