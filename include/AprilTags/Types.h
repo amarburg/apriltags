@@ -1,6 +1,8 @@
 #ifndef __TYPES_H__
 #define __TYPES_H__
 
+#include <stdint.h>
+
 namespace AprilTags {
 
   // The original unsigned long long is not universally defined (only in the
