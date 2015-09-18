@@ -19,6 +19,15 @@ static Mat load36H11GreyscaleImage( void )
   return inputImage;
 }
 
+static Mat load36H11ObliqueGreyscaleImage( void )
+{
+  Mat inputImage( imread(  TEST_36H11_OBLIQUE_GREYSCALE_JPG, CV_LOAD_IMAGE_GRAYSCALE ));
+  EXPECT_FALSE( inputImage.empty() );
+  return inputImage;
+}
+
+
+// Inefficient to detect both here and in the tag detector tests
 TEST( SubtagDetectorTest, DefaultConfiguration ) {
 const TagCodes whichCode = tagCodes36h11;
   TagDetector detector( whichCode );
@@ -55,5 +64,44 @@ const TagCodes whichCode = tagCodes36h11;
                                                   sz ));
   imwrite("expectedCorners.jpg", Corners::drawCornerMat( whichCode, tags[whichDetection].id, sz ) );
 #endif
+
+}
+
+
+TEST( SubtagDetectorTest, ObliqueImage ) {
+  TagDetector detector( tagCodes36h11 );
+  Mat inputImage( load36H11ObliqueGreyscaleImage() );
+  std::vector<TagDetection> tags = detector.extractTags( inputImage );
+
+  #ifdef BUILD_DEBUG_TAG_DETECTOR
+    DebugSubtagDetector subtagDetector( whichCode );
+  #else
+    SubtagDetector subtagDetector( whichCode );
+  #endif
+
+    unsigned int whichId = 90;
+    // Find tag 143 in the vector of detections
+    int whichDetection = -1;
+    for( unsigned int i = 0; i < tags.size(); ++i ) {
+      if( tags[i].id == whichId ) {
+        whichDetection = i;
+        break;
+      }
+    }
+    ASSERT_GE( whichDetection, 0 );
+
+    SubtagDetection subtag( subtagDetector.detectTagSubstructure( inputImage, tags[whichDetection] ) );
+
+  #ifdef BUILD_DEBUG_TAG_DETECTOR
+    // Produce debug outputs
+    imwrite( "oblique_predictedCorners.jpg", subtagDetector.predictedCorners );
+    imwrite( "oblique_refinedCorners.jpg", subtagDetector.refinedCorners );
+
+    const cv::Size sz( 50, 50 );
+    imwrite("oblique_expectedTag.jpg", Corners::drawTagMat( whichCode, tags[whichDetection].id,
+                                                    sz ));
+    imwrite("oblique_expectedCorners.jpg", Corners::drawCornerMat( whichCode, tags[whichDetection].id, sz ) );
+  #endif
+
 
 }

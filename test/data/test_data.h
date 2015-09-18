@@ -6,6 +6,11 @@
 #define TEST_36H11_JPG            (TEST_DATA_DIR "/test_36h11.jpg")
 #define TEST_36H11_GREYSCALE_JPG  (TEST_DATA_DIR "/test_36h11_greyscale.jpg")
 
+#define TEST_36H11_OBLIQUE_JPG            (TEST_DATA_DIR "/test_36h11_oblique.jpg")
+#define TEST_36H11_OBLIQUE_GREYSCALE_JPG  (TEST_DATA_DIR "/test_36h11_oblique_greyscale.jpg")
+
+
+
 #include "AprilTags/TagFamily.h"
 #include "AprilTags/Tag36h11.h"
 static const AprilTags::TagCodes &whichCode( AprilTags::tagCodes36h11 );

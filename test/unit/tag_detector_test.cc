@@ -11,12 +11,22 @@ using namespace AprilTags;
 
 #include "test_data.h"
 
-static Mat load36H11GreyscaleImage( void )
+inline Mat load36H11GreyscaleImage( void )
 {
   Mat inputImage( imread(  TEST_36H11_GREYSCALE_JPG, CV_LOAD_IMAGE_GRAYSCALE ));
   EXPECT_FALSE( inputImage.empty() );
   return inputImage;
 }
+
+inline Mat load36H11ObliqueGreyscaleImage( void )
+{
+  Mat inputImage( imread(  TEST_36H11_OBLIQUE_GREYSCALE_JPG, CV_LOAD_IMAGE_GRAYSCALE ));
+  EXPECT_FALSE( inputImage.empty() );
+  return inputImage;
+}
+
+
+
 
 static void validate_36h11_tags( const std::vector<TagDetection> &tags )
 {
@@ -44,6 +54,7 @@ static void write32FC1( const string &filename, const Mat &img )
   imwrite( filename, out );
 }
 
+
 TEST( DebugTagDetectorTest, DefaultConfiguration ) {
   DebugTagDetector detector( tagCodes36h11 );
 
@@ -67,3 +78,22 @@ TEST( DebugTagDetectorTest, DefaultConfiguration ) {
 }
 
 #endif
+
+
+TEST( TagDetectorTest, ObliqueImage ) {
+  TagDetector detector( tagCodes36h11 );
+
+  Mat inputImage( load36H11ObliqueGreyscaleImage() );
+
+  std::vector<TagDetection> tags = detector.extractTags( inputImage );
+
+  cout << "Got " << tags.size() << " tags from oblique image: ";
+  for( unsigned int i = 0; i < tags.size(); ++i ) cout << tags[i].id << " ";
+  cout << endl;
+
+  Mat tagImage;
+  cv::cvtColor( inputImage, tagImage, CV_GRAY2BGR );
+  for( unsigned int i = 0; i < tags.size(); ++i ) tags[i].draw( tagImage );
+  cv::imwrite( "oblique_tags.jpg", tagImage );
+
+}
