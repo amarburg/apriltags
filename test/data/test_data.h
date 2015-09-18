@@ -18,7 +18,7 @@ static const AprilTags::TagCodes &whichCode( AprilTags::tagCodes36h11 );
 
 // Ground truth data for Corner detection
 struct TagGroundTruth {
-  int id;
+  unsigned int id;
   std::vector< unsigned char > elem;
   std::vector< unsigned char > corners;
 
