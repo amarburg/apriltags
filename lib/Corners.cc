@@ -101,21 +101,48 @@ cv::Mat makeCornerMat( const TagCodes &family, int which, int blackBorder )
   return corners;
 }
 
- cv::Mat drawCornerMat( const Mat &corners )
+//=== Convenience drawing functions ====
+
+cv::Mat drawTagMat( const TagCodes &family, int which, const Size size )
+{
+  Mat tag( Corners::makeTagMat( family, which ));
+
+  if( size.area() == 0 ) return tag;
+
+  Mat huge;
+  cv::resize( 255*tag, huge, size, 0, 0, INTER_NEAREST );
+  return huge;
+}
+
+
+
+cv::Mat drawCornerMat( const TagCodes &family, int which, const Size size )
+{
+  return drawCornerMat( makeCornerMat( family, which ), size );
+}
+
+
+
+
+cv::Mat drawCornerMat( const Mat &corners, const Size size )
 {
   Mat out( corners.size().width * 2, corners.size().height * 2, CV_8UC1 );
 
   for( Point p(0,0); p.y < corners.rows; ++p.y ) {
     for( p.x = 0; p.x < corners.cols; ++p.x ) {
 
-    out.at<unsigned char>( p.y*2,   p.x*2 )   = ( corners.at<unsigned char>(p) & 0x01 ) ? 1 : 0;
-    out.at<unsigned char>( p.y*2,   p.x*2+1 ) = ( corners.at<unsigned char>(p) & 0x02 ) ? 1 : 0;
-    out.at<unsigned char>( p.y*2+1, p.x*2 )   = ( corners.at<unsigned char>(p) & 0x04 ) ? 1 : 0;
-    out.at<unsigned char>( p.y*2+1, p.x*2+1 ) = ( corners.at<unsigned char>(p) & 0x08 ) ? 1 : 0;
+      out.at<unsigned char>( p.y*2,   p.x*2 )   = ( corners.at<unsigned char>(p) & 0x01 ) ? 1 : 0;
+      out.at<unsigned char>( p.y*2,   p.x*2+1 ) = ( corners.at<unsigned char>(p) & 0x02 ) ? 1 : 0;
+      out.at<unsigned char>( p.y*2+1, p.x*2 )   = ( corners.at<unsigned char>(p) & 0x04 ) ? 1 : 0;
+      out.at<unsigned char>( p.y*2+1, p.x*2+1 ) = ( corners.at<unsigned char>(p) & 0x08 ) ? 1 : 0;
     }
   }
 
-return out;
+  if( size.area() == 0 ) return out;
+
+  Mat huge;
+  cv::resize( 255*out, huge, size, 0, 0, INTER_NEAREST );
+  return huge;
 }
 
 }

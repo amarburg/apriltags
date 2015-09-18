@@ -11,6 +11,8 @@
 
 namespace AprilTags {
 
+  using cv::Size;
+
   enum CornerTypeMasks {
     CORNER_EDGE = 0x10,
     CORNER_IBC  = 0x20,    // Inner Black Corner (three black, one white)
@@ -29,7 +31,9 @@ namespace AprilTags {
      cv::Mat makeCornerMat( const Code_t code, int dim, int blackBorder = 1 );
      cv::Mat makeCornerMat( const TagCodes &family, int which, int blackBorder = 1 );
 
-     cv::Mat drawCornerMat( const cv::Mat &corners );
+     cv::Mat drawTagMat( const TagCodes &family, int which, const Size size = Size(0,0) );
+     cv::Mat drawCornerMat( const TagCodes &family, int which, const Size size = Size(0,0) );
+     cv::Mat drawCornerMat( const cv::Mat &corners, const Size size = Size(0,0) );
 
   };
 
