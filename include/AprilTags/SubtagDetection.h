@@ -14,12 +14,10 @@ namespace AprilTags {
       : corner( corner_ ), detected( false )
     {;}
 
-
     unsigned char corner;
     bool detected;
 
     bool detectable( void ) const { return (corner & CORNER_DETECTABLE) != 0; }
-
 
     cv::Point2f inImage, inTag;
 

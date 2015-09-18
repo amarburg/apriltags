@@ -23,7 +23,7 @@ SubtagDetection::SubtagDetection( const TagCodes &code_, const TagDetection &det
         // Translate to their in-tag location.
         c.inTag.x = p.x*ncScalar - ncOffset;
 
-        // Once again, the in-tag coordinate system is aligned
+        // The tag coordinate system is aligned
         // with the mathematical system s.t. -1,-1 is at the lower
         // left corner while the cornerMat is in image coordinates
         // (origin at upper left)

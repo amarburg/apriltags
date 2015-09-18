@@ -34,7 +34,10 @@ SubtagDetector::detectTagSubstructure(const Mat& image, const TagDetection &dete
   expandBoundingBox( bb, expansion );
 
   // TODO: When do we clip to edge of image?
+
+#ifdef BUILD_DEBUG_TAG_DETECTOR
   drawPredictedCornerLocations( image, bb, d );
+#endif
 
   // Attempt to refine corner location
   vector< Point2f > detectableCorners;
@@ -46,10 +49,17 @@ SubtagDetector::detectTagSubstructure(const Mat& image, const TagDetection &dete
 
   for( unsigned int i = 0, c = 0; i < d.corners.size(); ++i ) {
     if( c >= detectableCorners.size() ) break;   // This shouldn't happen
-    if( d.corners[i].detectable() ) d.corners[i].inImage = detectableCorners[ c++ ];
+    if( d.corners[i].detectable() ) {
+      // Consider other heuristics here
+      d.corners[i].detected = true;
+      d.corners[i].inImage = detectableCorners[ c ];
+      c++;
+    }
   }
 
+#ifdef BUILD_DEBUG_TAG_DETECTOR
   drawRefinedCornerLocations( image, bb, d );
+#endif
 
   return d;
 }
@@ -79,6 +89,7 @@ void DebugSubtagDetector::drawCornerLocations( const Mat &image, const cv::Rect 
 
     if( c.detectable() ) cv::circle( dest, pt, 4, Scalar(0,0,255), 1 );
 
+    // Draw the corner code as well
     char out[3];
     snprintf( out, 3, "%02x", detection.corners[i].corner );
     putText( dest, out, pt, FONT_HERSHEY_SIMPLEX , 0.4, Scalar( 0,255,0 ) );
