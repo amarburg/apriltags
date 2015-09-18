@@ -6,48 +6,58 @@
 using namespace cv;
 
 #include "AprilTags/Corners.h"
-#include "AprilTags/TagFamily.h"
-#include "AprilTags/Tag36h11.h"
 using namespace AprilTags;
 
+#include "test_data.h"
 
-const int WhichTag = 34;
-const TagCodes &code( AprilTags::tagCodes36h11 );
+const int WhichTag = 143;
+
 
 // Tests the code which makes
 TEST( CornersTest, MakeTagMat ) {
 
-  const int edge = code.dim;
+  const int edge = whichCode.dim;
 
-  Mat tag( Corners::makeTagMat( code, WhichTag ));
+  Mat tag( Corners::makeTagMat( whichCode, WhichTag ));
 
   EXPECT_EQ( 6, edge );
   EXPECT_EQ( edge+4, tag.rows );
   EXPECT_EQ( edge+4, tag.cols );
 
-  Mat huge;
-  const double scale = 10.0;
-  cv::resize( 255*tag, huge, Size(), scale, scale, INTER_NEAREST );
+  imwrite("tag.jpg", Corners::drawTagMat( tag, Size(50,50)));
 
-  imwrite("/tmp/tag.jpg", huge);
+  int whichGroundTruth = Tag36H11GroundTruths.find( WhichTag );
+  ASSERT_GE( whichGroundTruth, 0 );
+  const TagGroundTruth &gt( Tag36H11GroundTruths[whichGroundTruth] );
+
+  EXPECT_EQ( gt.numElement(), tag.size().area() );
+
+  for( Point p(0,0); p.y < tag.rows; ++p.y )
+    for( p.x = 0; p.x < tag.cols; ++p.x )
+      EXPECT_EQ( gt.element( p.y*tag.cols + p.x ), tag.at<unsigned char>(p) );
+
 }
 
 TEST( CornersTest, MakeCornerMat ) {
 
-  const int edge = code.dim;
+  const int edge = whichCode.dim;
   EXPECT_EQ( 6, edge );
 
-  Mat corners( Corners::makeCornerMat( code, WhichTag ));
+  Mat corners( Corners::makeCornerMat( whichCode, WhichTag ));
 
   EXPECT_EQ( edge+3, corners.rows );
   EXPECT_EQ( edge+3, corners.cols );
 
-  Mat out( Corners::drawCornerMat( corners ));
-  const double scale = 10.0;
-  Mat huge;
-  cv::resize( 255*out, huge, Size(), scale, scale, INTER_NEAREST );
+  imwrite("corners.jpg", Corners::drawCornerMat( corners, Size(50, 50 ) ));
 
-  imwrite("/tmp/corners.jpg", huge);
+  int whichGroundTruth = Tag36H11GroundTruths.find( WhichTag );
+  ASSERT_GE( whichGroundTruth, 0 );
+  const TagGroundTruth &gt( Tag36H11GroundTruths[whichGroundTruth] );
 
+  EXPECT_EQ( gt.numCorners(), corners.size().area() );
+
+  for( Point p(0,0); p.y < corners.rows; ++p.y )
+    for( p.x = 0; p.x < corners.cols; ++p.x )
+      EXPECT_EQ( gt.corner( p.y*corners.cols + p.x ), corners.at<unsigned char>(p) );
 
 }

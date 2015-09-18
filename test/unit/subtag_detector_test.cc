@@ -40,11 +40,10 @@ const TagCodes whichCode = tagCodes36h11;
       break;
     }
   }
-
-  EXPECT_GE( whichDetection, 0 );
-
+  ASSERT_GE( whichDetection, 0 );
 
   SubtagDetection subtag( subtagDetector.detectTagSubstructure( inputImage, tags[whichDetection] ) );
+
 
 #ifdef BUILD_DEBUG_TAG_DETECTOR
   // Produce debug outputs
@@ -55,7 +54,6 @@ const TagCodes whichCode = tagCodes36h11;
   imwrite("expectedTag.jpg", Corners::drawTagMat( whichCode, tags[whichDetection].id,
                                                   sz ));
   imwrite("expectedCorners.jpg", Corners::drawCornerMat( whichCode, tags[whichDetection].id, sz ) );
-
 #endif
 
 }

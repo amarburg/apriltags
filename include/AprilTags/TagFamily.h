@@ -15,8 +15,6 @@ using namespace std;
 
 namespace AprilTags {
 
-typedef uint64_t Code_t;
-
 class TagCodes {
 public:
   int dim;

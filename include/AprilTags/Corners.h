@@ -32,6 +32,8 @@ namespace AprilTags {
      cv::Mat makeCornerMat( const TagCodes &family, int which, int blackBorder = 1 );
 
      cv::Mat drawTagMat( const TagCodes &family, int which, const Size size = Size(0,0) );
+     cv::Mat drawTagMat( const cv::Mat &mat, const Size size = Size(0,0) );
+
      cv::Mat drawCornerMat( const TagCodes &family, int which, const Size size = Size(0,0) );
      cv::Mat drawCornerMat( const cv::Mat &corners, const Size size = Size(0,0) );
 

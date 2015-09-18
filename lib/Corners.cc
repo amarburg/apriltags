@@ -105,8 +105,12 @@ cv::Mat makeCornerMat( const TagCodes &family, int which, int blackBorder )
 
 cv::Mat drawTagMat( const TagCodes &family, int which, const Size size )
 {
-  Mat tag( Corners::makeTagMat( family, which ));
+  return drawTagMat( makeTagMat( family, which ), size );
+}
 
+
+cv::Mat drawTagMat( const Mat &tag, const Size size )
+{
   if( size.area() == 0 ) return tag;
 
   Mat huge;
@@ -115,13 +119,10 @@ cv::Mat drawTagMat( const TagCodes &family, int which, const Size size )
 }
 
 
-
 cv::Mat drawCornerMat( const TagCodes &family, int which, const Size size )
 {
   return drawCornerMat( makeCornerMat( family, which ), size );
 }
-
-
 
 
 cv::Mat drawCornerMat( const Mat &corners, const Size size )
