@@ -11,14 +11,14 @@ using namespace AprilTags;
 
 #include "test_data.h"
 
-inline Mat load36H11GreyscaleImage( void )
+static Mat load36H11GreyscaleImage( void )
 {
   Mat inputImage( imread(  TEST_36H11_GREYSCALE_JPG, CV_LOAD_IMAGE_GRAYSCALE ));
   EXPECT_FALSE( inputImage.empty() );
   return inputImage;
 }
 
-inline Mat load36H11ObliqueGreyscaleImage( void )
+static Mat load36H11ObliqueGreyscaleImage( void )
 {
   Mat inputImage( imread(  TEST_36H11_OBLIQUE_GREYSCALE_JPG, CV_LOAD_IMAGE_GRAYSCALE ));
   EXPECT_FALSE( inputImage.empty() );
