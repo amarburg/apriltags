@@ -11,21 +11,25 @@
 
 namespace AprilTags {
 
-  class Corners {
-    public:
-      Corners( const cv::Mat &corners );
+  enum CornerTypeMasks {
+    CORNER_EDGE = 0x10,
+    CORNER_IBC  = 0x20,    // Inner Black Corner (three black, one white)
+    CORNER_IWC  = 0x40,    // Inner White Corner (three white, one black)
+    CORNER_CHECK = 0x80    // Checkerboard corner
+  };
 
-    static cv::Mat makeTagMat( const TagCodes &family, int which, int blackBorder = 1, int whiteBoard = 1 );
+  static const unsigned char CORNER_DETECTABLE = (CORNER_IBC | CORNER_IWC | CORNER_CHECK);
 
-    static cv::Mat makeCornerMat( const Code_t code, int dim, int blackBorder = 1 );
-    static cv::Mat makeCornerMat( const TagCodes &family, int which, int blackBorder = 1 );
+  inline bool detectable( unsigned char corner ) { return (corner & CORNER_DETECTABLE) != 0; }
 
-    static cv::Mat drawCornerMat( const cv::Mat &corners );
+  namespace Corners {
 
-  private:
-    Corners( void ) {;}
+     cv::Mat makeTagMat( const TagCodes &family, int which, int blackBorder = 1, int whiteBoard = 1 );
 
-    cv::Mat _corners;
+     cv::Mat makeCornerMat( const Code_t code, int dim, int blackBorder = 1 );
+     cv::Mat makeCornerMat( const TagCodes &family, int which, int blackBorder = 1 );
+
+     cv::Mat drawCornerMat( const cv::Mat &corners );
 
   };
 

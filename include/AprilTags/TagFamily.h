@@ -80,7 +80,7 @@ public:
   void decode( TagDetection& det, Code_t rCode ) const;
 
   //! Corner matrices are eager-generated */
-  const cv::Mat &corner( int idx );
+//  const cv::Mat &corner( int idx );
 
   //! Prints the hamming distances of the tag codes.
   void printHammingDistances() const;
@@ -113,7 +113,7 @@ public:
   const TagCodes &_code;
 
 //  std::vector<Code_t> codes;
-  std::vector<cv::Mat> corners;
+//  std::vector<cv::Mat> corners;
 
   static const int  popCountTableShift = 12;
   static const unsigned int popCountTableSize = 1 << popCountTableShift;

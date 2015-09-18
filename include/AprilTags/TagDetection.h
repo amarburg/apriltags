@@ -66,8 +66,10 @@ struct TagDetection {
   //! The homography is relative to image center, whose coordinates are below.
   std::pair<float,float> hxy;
 
-  //! Interpolate point given (x,y) is in tag coordinate space from (-1,-1) to (1,1).
+  //! Interpolate a point (x,y)  in the tag coordinate space from (-1,-1) to (1,1)
+  // into image coordinates
   std::pair<float,float> interpolate(float x, float y) const;
+  cv::Point2f            interpolatePt( const cv::Point2f &pt ) const;
 
   //! Used to eliminate redundant tags
   bool overlapsTooMuch(const TagDetection &other) const;

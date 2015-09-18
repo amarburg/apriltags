@@ -35,8 +35,8 @@ TagFamily::TagFamily(const TagCodes& tagCodes)
     //dimension( tagCodes.dimension ),
     minimumHammingDistance(tagCodes.minHammingDistance),
     errorRecoveryBits(1), //codes(),
-    _code( tagCodes ),
-    corners( _code.size(), cv::Mat() )
+    _code( tagCodes )
+    //corners( _code.size(), cv::Mat() )
 {
   ;
 }
@@ -119,13 +119,13 @@ void TagFamily::decode(TagDetection& det, Code_t rCode) const {
 }
 
 // Eager-generate the corners
-const cv::Mat &TagFamily::corner( int idx )
-{
-  if( corners[idx].empty() )
-     corners[idx] = Corners::makeCornerMat( _code, idx, blackBorder );
-
-  return corners[idx];
-}
+// const cv::Mat &TagFamily::corner( int idx )
+// {
+//   if( corners[idx].empty() )
+//      corners[idx] = Corners::makeCornerMat( _code, idx, blackBorder );
+//
+//   return corners[idx];
+// }
 
 
 void TagFamily::printHammingDistances() const {

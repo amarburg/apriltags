@@ -4,15 +4,12 @@
 using namespace cv;
 
 namespace AprilTags {
-
-  Corners::Corners( const Mat &corners )
-    : _corners( corners )
-  {;}
+namespace Corners {
 
 
 //===================================================================
 
-Mat Corners::makeTagMat( const TagCodes &family, int which, int blackBorder, int whiteBorder )
+Mat makeTagMat( const TagCodes &family, int which, int blackBorder, int whiteBorder )
 {
   int dim = family.dim;
 
@@ -80,45 +77,46 @@ static unsigned char CornerCodeLUT[] = {
     0x20, 0x80, 0x10, 0x40, 0x10, 0x40, 0x40, 0x00
 };
 
-  cv::Mat Corners::makeCornerMat( const TagCodes &family, int which, int blackBorder )
-  {
-    Mat tag( makeTagMat(family, which, blackBorder, 1) );
+cv::Mat makeCornerMat( const TagCodes &family, int which, int blackBorder )
+{
+  Mat tag( makeTagMat(family, which, blackBorder, 1) );
 
-    int edge = tag.rows - 1;
+  int edge = tag.rows - 1;
 
-    Mat corners( edge, edge, CV_8UC1 );
+  Mat corners( edge, edge, CV_8UC1 );
 
-    for( Point p(0,0); p.y < edge; ++p.y ){
-      for( p.x=0; p.x < edge; ++p.x ) {
-        unsigned char bits = 0;
-        // Might be easier way to do this.  LUT?
-        if( tag.at<unsigned char>(p) )             bits |= 0x01;
-        if( tag.at<unsigned char>(p.y, p.x+1) )    bits |= 0x02;
-        if( tag.at<unsigned char>(p.y+1,p.x) )     bits |= 0x04;
-        if( tag.at<unsigned char>(p.y+1, p.x+1) )  bits |= 0x08;
+  for( Point p(0,0); p.y < edge; ++p.y ){
+    for( p.x=0; p.x < edge; ++p.x ) {
+      unsigned char bits = 0;
+      // Might be easier way to do this.  LUT?
+      if( tag.at<unsigned char>(p) )             bits |= 0x01;
+      if( tag.at<unsigned char>(p.y, p.x+1) )    bits |= 0x02;
+      if( tag.at<unsigned char>(p.y+1,p.x) )     bits |= 0x04;
+      if( tag.at<unsigned char>(p.y+1, p.x+1) )  bits |= 0x08;
 
-        corners.at<unsigned char>(p) = bits | (CornerCodeLUT[bits] & 0xF0);
-      }
+      corners.at<unsigned char>(p) = bits | (CornerCodeLUT[bits] & 0xF0);
     }
-
-    return corners;
   }
 
-   cv::Mat Corners::drawCornerMat( const Mat &corners )
-  {
-    Mat out( corners.size().width * 2, corners.size().height * 2, CV_8UC1 );
+  return corners;
+}
 
-    for( Point p(0,0); p.y < corners.rows; ++p.y ) {
-      for( p.x = 0; p.x < corners.cols; ++p.x ) {
+ cv::Mat drawCornerMat( const Mat &corners )
+{
+  Mat out( corners.size().width * 2, corners.size().height * 2, CV_8UC1 );
 
-      out.at<unsigned char>( p.y*2,   p.x*2 )   = ( corners.at<unsigned char>(p) & 0x01 ) ? 1 : 0;
-      out.at<unsigned char>( p.y*2,   p.x*2+1 ) = ( corners.at<unsigned char>(p) & 0x02 ) ? 1 : 0;
-      out.at<unsigned char>( p.y*2+1, p.x*2 )   = ( corners.at<unsigned char>(p) & 0x04 ) ? 1 : 0;
-      out.at<unsigned char>( p.y*2+1, p.x*2+1 ) = ( corners.at<unsigned char>(p) & 0x08 ) ? 1 : 0;
-      }
+  for( Point p(0,0); p.y < corners.rows; ++p.y ) {
+    for( p.x = 0; p.x < corners.cols; ++p.x ) {
+
+    out.at<unsigned char>( p.y*2,   p.x*2 )   = ( corners.at<unsigned char>(p) & 0x01 ) ? 1 : 0;
+    out.at<unsigned char>( p.y*2,   p.x*2+1 ) = ( corners.at<unsigned char>(p) & 0x02 ) ? 1 : 0;
+    out.at<unsigned char>( p.y*2+1, p.x*2 )   = ( corners.at<unsigned char>(p) & 0x04 ) ? 1 : 0;
+    out.at<unsigned char>( p.y*2+1, p.x*2+1 ) = ( corners.at<unsigned char>(p) & 0x08 ) ? 1 : 0;
     }
-
-  return out;
   }
 
+return out;
+}
+
+}
 }

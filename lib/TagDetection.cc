@@ -1,5 +1,5 @@
 
-#include "opencv2/opencv.hpp"
+#include "opencv2/core.hpp"
 
 #include "AprilTags/TagDetection.h"
 #include "AprilTags/MathUtil.h"
@@ -17,6 +17,8 @@ namespace std {
 #endif
 
 namespace AprilTags {
+
+using namespace cv;
 
 TagDetection::TagDetection()
   : good(false), obsCode(), code(), id(), hammingDistance(), rotation(), p(),
@@ -43,13 +45,21 @@ float TagDetection::getXYOrientation() const {
 }
 
 std::pair<float,float> TagDetection::interpolate(float x, float y) const {
-  float z = homography(2,0)*x + homography(2,1)*y + homography(2,2);
-  if ( z == 0 )
-    return std::pair<float,float>(0,0);  // prevents returning a pair with a -NaN, for which gcc 4.4 flubs isnan
-  float newx = (homography(0,0)*x + homography(0,1)*y + homography(0,2))/z + hxy.first;
-  float newy = (homography(1,0)*x + homography(1,1)*y + homography(1,2))/z + hxy.second;
-  return std::pair<float,float>(newx,newy);
+  cv::Point2f pt( interpolatePt( Point2f(x,y )));
+  return std::pair<float,float>(pt.x, pt.y);
 }
+
+cv::Point2f TagDetection::interpolatePt( const cv::Point2f &pt ) const
+{
+	float x = pt.x, y = pt.y;
+	float z = homography(2,0)*x + homography(2,1)*y + homography(2,2);
+	if ( z == 0 )
+	return cv::Point2f(0,0);  // prevents returning a pair with a -NaN, for which gcc 4.4 flubs isnan
+	float newx = (homography(0,0)*x + homography(0,1)*y + homography(0,2))/z + hxy.first;
+	float newy = (homography(1,0)*x + homography(1,1)*y + homography(1,2))/z + hxy.second;
+	return cv::Point2f(newx,newy);
+}
+
 
 bool TagDetection::overlapsTooMuch(const TagDetection &other) const {
   // Compute a sort of "radius" of the two targets. We'll do this by
