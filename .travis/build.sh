@@ -18,5 +18,5 @@ cd $HOME
 mkdir build
 cd build
 cmake --version
-cmake $CMAKE_VARS ..
+cmake $CMAKE_VARS -DOpenCV_DIR=/usr/share/OpenCV/ ..
 make && make test
