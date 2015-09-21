@@ -40,7 +40,7 @@ const TagCodes whichCode = tagCodes36h11;
   SubtagDetector subtagDetector( whichCode );
 #endif
 
-  unsigned int whichId = 143;
+  int whichId = 143;
   // Find tag 143 in the vector of detections
   int whichDetection = -1;
   for( unsigned int i = 0; i < tags.size(); ++i ) {
@@ -79,8 +79,8 @@ TEST( SubtagDetectorTest, ObliqueImage ) {
     SubtagDetector subtagDetector( whichCode );
   #endif
 
-    unsigned int whichId = 90;
-    // Find tag 143 in the vector of detections
+    int whichId = 90;
+
     int whichDetection = -1;
     for( unsigned int i = 0; i < tags.size(); ++i ) {
       if( tags[i].id == whichId ) {
