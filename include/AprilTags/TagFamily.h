@@ -109,6 +109,7 @@ public:
 
   //! Specific code (codebook?) in use
   const TagCodes &_code;
+  const TagCodes &codes( void ) const { return _code; }
 
 //  std::vector<Code_t> codes;
 //  std::vector<cv::Mat> corners;
