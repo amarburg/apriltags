@@ -21,16 +21,16 @@ std::ostream& operator<<(std::ostream &os, const std::pair<float,float> &pt);
 //! Miscellaneous math utilities and fast exp functions.
 class MathUtil {
 public:
-	
+
 	//! Returns the square of a value.
 	static inline float square(float x) { return x*x; }
-	
+
 	static inline float distance2D(const std::pair<float,float> &p0, const std::pair<float,float> &p1) {
 		float dx = p0.first - p1.first;
 		float dy = p0.second - p1.second;
 		return std::sqrt(dx*dx + dy*dy);
 	}
-	
+
 	//! Returns a result in [-Pi, Pi]
 	static inline float mod2pi(float vin) {
 		const float twopi = 2 * (float)M_PI;
@@ -41,7 +41,7 @@ public:
 		float r = absv - qi*twopi;
 		return (vin<0) ? -r : r;
 	}
-	
+
 	//! Returns a value of v wrapped such that ref and v differ by no more than +/- Pi
 	static inline float mod2pi(float ref, float v) { return ref + mod2pi(v-ref); }
 
@@ -66,7 +66,7 @@ public:
     else
       return angle;
   }
-	
+
 };
 
 // std::isnan() exists only from C++11 onwards

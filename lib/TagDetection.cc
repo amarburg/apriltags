@@ -60,6 +60,35 @@ cv::Point2f TagDetection::interpolatePt( const cv::Point2f &pt ) const
 	return cv::Point2f(newx,newy);
 }
 
+float TagDetection::totalArea( void )
+{
+	// Uses Hero's formula:
+	//   https://en.wikipedia.org/wiki/Heron%27s_formula
+	// to compute area of two sub-triangles, then sums.
+
+	// Compute the side lengths
+	float side[4];
+	for( unsigned int i = 0; i < 3; ++i )
+		side[i] = MathUtil::distance2D( p[i], p[i+1] );
+	side[3] = MathUtil::distance2D( p[3], p[0] );
+
+	float diag = MathUtil::distance2D( p[0], p[2] );
+
+	float s[2];
+ 	s[0] = (side[0] + side[1] + diag) / 2.0;
+	s[1] = (side[2] + side[3] + diag) / 2.0;
+
+	float area[2];
+	area[0] = std::sqrt( s[0]*(s[0]- side[0])*(s[0] - side[1])*(s[0]-diag));
+	area[1] = std::sqrt( s[1]*(s[1]- side[2])*(s[1] - side[3])*(s[1]-diag));
+
+	return area[0] + area[1];
+}
+
+// float TagDetection::visibleArea( void )
+// {
+//
+// }
 
 bool TagDetection::overlapsTooMuch(const TagDetection &other) const {
   // Compute a sort of "radius" of the two targets. We'll do this by

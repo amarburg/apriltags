@@ -52,6 +52,9 @@ struct TagDetection {
   /*! Observed perimeter excludes the inferred perimeter which is used to connect incomplete quads. */
   float observedPerimeter;
 
+  float totalArea();
+  //float visibleArea();
+
   //! A 3x3 homography that computes pixel coordinates from tag-relative coordinates.
   /*  Both the input and output coordinates are 2D homogeneous vectors, with y = Hx.
    *  'y' are pixel coordinates, 'x' are tag-relative coordinates. Tag coordinates span

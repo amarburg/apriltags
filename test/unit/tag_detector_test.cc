@@ -26,8 +26,6 @@ static Mat load36H11ObliqueGreyscaleImage( void )
 }
 
 
-
-
 static void validate_36h11_tags( const std::vector<TagDetection> &tags )
 {
   EXPECT_EQ( 80, tags.size() );
@@ -90,6 +88,11 @@ TEST( TagDetectorTest, ObliqueImage ) {
   cout << "Got " << tags.size() << " tags from oblique image: ";
   for( unsigned int i = 0; i < tags.size(); ++i ) cout << tags[i].id << " ";
   cout << endl;
+
+  cout << "Areas: ";
+  for( unsigned int i = 0; i < tags.size(); ++i ) cout << tags[i].totalArea() << " ";
+  cout << endl;
+
 
   Mat tagImage;
   cv::cvtColor( inputImage, tagImage, CV_GRAY2BGR );
