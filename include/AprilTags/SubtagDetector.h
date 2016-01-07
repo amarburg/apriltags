@@ -1,7 +1,7 @@
 
 
-#ifndef __SUBTAG_DETECTOR__
-#define __SUBTAG_DETECTOR__
+#ifndef __APRILTAGS_SUBTAG_DETECTOR__
+#define __APRILTAGS_SUBTAG_DETECTOR__
 
 #include <vector>
 #include <opencv2/core.hpp>
@@ -67,8 +67,8 @@ namespace AprilTags {
 
   };
 
-}
-
 #endif
+
+}
 
 #endif

@@ -1,5 +1,5 @@
-#ifndef TAGDETECTION_H
-#define TAGDETECTION_H
+#ifndef __TAGDETECTION_H__
+#define __TAGDETECTION_H__
 
 #include <Eigen/Dense>
 

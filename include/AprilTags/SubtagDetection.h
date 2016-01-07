@@ -1,5 +1,5 @@
-#ifndef __SUBTAG_DETECTION_H__
-#define __SUBTAG_DETECTION_H__
+#ifndef __APRILTAGS_SUBTAG_DETECTION_H__
+#define __APRILTAGS_SUBTAG_DETECTION_H__
 
 #include <opencv2/core.hpp>
 
