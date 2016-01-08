@@ -18,8 +18,6 @@ Mat makeTagMat( const TagCodes &family, int which, int blackBorder, int whiteBor
   int bwBorder = blackBorder + whiteBorder;
   int edge = dim + 2*(bwBorder);
 
-  const int WHITE = 1, BLACK = 0;
-
   // To avoid going nuts, draw the actual tag with border ...
   // with a 1-pixel white border around the outside
   Mat tag( edge, edge, CV_8UC1, Scalar(0) );
@@ -46,9 +44,9 @@ Mat makeTagMat( const TagCodes &family, int which, int blackBorder, int whiteBor
         // printf("Mask = %016llx\n", mask);
 
         if( (code & mask) )
-        tag.at<unsigned char>(p) = WHITE;
+          tag.at<unsigned char>(p) = WHITE;
         else
-        tag.at<unsigned char>(p) = BLACK;
+          tag.at<unsigned char>(p) = BLACK;
 
       }
 
@@ -90,8 +88,8 @@ cv::Mat makeCornerMat( const TagCodes &family, int which, int blackBorder )
       unsigned char bits = 0;
       // Might be easier way to do this.  LUT?
       if( tag.at<unsigned char>(p) )             bits |= 0x01;
-      if( tag.at<unsigned char>(p.y, p.x+1) )    bits |= 0x02;
-      if( tag.at<unsigned char>(p.y+1,p.x) )     bits |= 0x04;
+      if( tag.at<unsigned char>(p.y,   p.x+1) )  bits |= 0x02;
+      if( tag.at<unsigned char>(p.y+1, p.x) )    bits |= 0x04;
       if( tag.at<unsigned char>(p.y+1, p.x+1) )  bits |= 0x08;
 
       corners.at<unsigned char>(p) = bits | (CornerCodeLUT[bits] & 0xF0);

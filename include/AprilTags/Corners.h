@@ -26,8 +26,40 @@ namespace AprilTags {
 
   namespace Corners {
 
-     cv::Mat makeTagMat( const TagCodes &family, int which, int blackBorder = 1, int whiteBoard = 1 );
+    static const int WHITE = 1, BLACK = 0;
 
+     /* A TagMat is a 8UC1 OpenCV Mat which stores the binary pattern for a
+      * given AprilTags code, including a fixed width black border (with a
+      * width set by blackBorder in multiples of the size of one "bit" of
+      * Apriltags data), and a fixed width white border beyond that (set
+      * but whiteBorder).
+      *
+      * So, for example TagFamily36h11 creates tags with a 6 bit x 6 bit
+      * payload.  If blackBoard = whiteBorder = 1, the resulting TagMat
+      * will be 10 x 10.
+      *
+      * Values in the array are either WHITE or BLACK as above.
+      */
+     cv::Mat makeTagMat( const TagCodes &family, int which, int blackBorder = 1, int whiteBorder = 1 );
+
+     /* A CornerMat is an 8UC1 OpenCV Mat which describes the
+      * corners/interstices of a tag.  It is (N-1) x (N-1)
+      * in size where N is the size of the TagMat (e.g. 10 for TagFamily36h11)
+      *
+      * Each element in the array is actually two bytefields.  The top four
+      * bits describe the type of corner -- checkerboard, inside black
+      * corner, inside white corner, or an edge (by CornerTypeMasks).
+      * The lower four bits describe the four surrounding squares:
+      *
+      *   0 | 1
+      *   --+--
+      *   2 | 3
+      *
+      * As either BLACK or WHITE.  By definition, there are only
+      * 2^4 = 16 possible combinations and the value of the lower four bits
+      * determines the values of the upper four bits.  But it makes it
+      * easier to mask out findable and unfindable corner types.
+      */
      cv::Mat makeCornerMat( const Code_t code, int dim, int blackBorder = 1 );
      cv::Mat makeCornerMat( const TagCodes &family, int which, int blackBorder = 1 );
 

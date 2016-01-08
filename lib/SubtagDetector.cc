@@ -1,5 +1,5 @@
 
-#include <iostream>
+#include <algorithm>
 using namespace std;
 
 #include "AprilTags/SubtagDetector.h"
@@ -15,51 +15,77 @@ namespace AprilTags {
   _code( tagCodes )
   {;}
 
-  SubtagDetection
+  vector<CornerDetection>
   SubtagDetector::detectTagSubstructure(const Mat& image, const TagDetection &detection )
   {
-    SubtagDetection d( _code, detection );
-    // First a quick scale check.  Determine the bounding box for the tag.
+    vector<CornerDetection> corners;
+
+    // First the pass/fail checks.
+
+    // Quick scale check.  Determine the bounding box for the tag.
     // Needs to be at least at least minPixPerEdge * edge pixels wide before
     // detection is attempted.
     Rect bb( boundingBox( detection ) );
-
     float minPix = minPixPerEdge * _code.dim;
-    if( (bb.width < minPix) || (bb.height < minPix) ) return d;
+    if( (bb.width < minPix) || (bb.height < minPix) ) return corners;
 
     // Identify, extract and warp to planar/upright ROI in the image based on the detection.
     //cout << "Bounding box is " << bb.width << " x " << bb.height << endl;
 
     const float expansion = 0.1;
     expandBoundingBox( bb, expansion );
+    clipBoundingBox( bb, image );
 
-    // TODO: When do we clip to edge of image?
+    populateCorners( detection, corners );
 
-    if( _saveDebugImages ) drawPredictedCornerLocations( image, bb, d );
+    if( _saveDebugImages ) drawPredictedCornerLocations( image, bb, corners );
 
-    // Attempt to refine corner location
-    vector< Point2f > detectableCorners;
-    for( unsigned int i = 0; i < d.corners.size(); ++i ) {
-      if( d.corners[i].detectable() ) detectableCorners.push_back( d.corners[i].inImage );
-    }
+    vector< Point2f > refinedLocations;
+    std::transform( corners.begin(), corners.end(),
+                    back_inserter<vector< Point2f > >(refinedLocations),
+                    CornerDetection::InImageTx );
+    cornerSubPix( image, refinedLocations, subPixSearchWindow,  Size(-1,-1), TermCriteria() );
 
-    cornerSubPix( image, detectableCorners, subPixSearchWindow,  Size(-1,-1), TermCriteria() );
-
-    for( unsigned int i = 0, c = 0; i < d.corners.size(); ++i ) {
-      if( c >= detectableCorners.size() ) break;   // This shouldn't happen
-      if( d.corners[i].detectable() ) {
+    assert( refinedLocations.size() == corners.size() );
+    for( unsigned int i = 0; i < corners.size(); ++i ) {
         // Consider other heuristics here
-        d.corners[i].detected = true;
-        d.corners[i].inImage = detectableCorners[ c ];
-        c++;
-      }
+
+        corners[i].inImage = refinedLocations[ i ];
     }
 
-    if( _saveDebugImages ) drawRefinedCornerLocations( image, bb, d );
+    if( _saveDebugImages ) drawRefinedCornerLocations( image, bb, corners );
 
-    return d;
+    return corners;
   }
 
+  void SubtagDetector::populateCorners( const TagDetection &detection, vector<CornerDetection> &corners )
+  {
+    Mat cornerMat( Corners::makeCornerMat( _code, detection.id ) );
+
+    // The width of one square in the tag-centric coord frame
+    float ncScalar  = 2.0/ (_code.dim+2);
+    float ncOffset  = 1;  //ncScalar * (code_.dim/2.0 + 1);
+
+     for( Point p(0,0); p.y < cornerMat.rows; ++p.y ) {
+       for( p.x = 0;    p.x < cornerMat.cols; ++p.x ) {
+          CornerDetection c( cornerMat.at<unsigned char>(p) );
+          if( c.detectable() == false ) continue;
+
+          // Translate to the in-tag location.
+          c.inTag.x = p.x*ncScalar - ncOffset;
+
+          // The tag coordinate system is aligned
+          // with the mathematical system s.t. -1,-1 is at the lower
+          // left corner while the cornerMat is in image coordinates
+          // (origin at upper left)
+          c.inTag.y = -(p.y*ncScalar - ncOffset);
+
+          c.inImage = detection.interpolatePt( c.inTag );
+
+          corners.push_back( c );
+      }
+    }
+  }
 
 
   //========= Debug Functions ======================================
@@ -92,41 +118,39 @@ namespace AprilTags {
     }
   }
 
-  void SubtagDetector::drawPredictedCornerLocations( const Mat &image, const cv::Rect &bb, const SubtagDetection &detection )
+  void SubtagDetector::drawPredictedCornerLocations( const Mat &image, const cv::Rect &bb, const vector<CornerDetection> &corners )
   {
     Mat img;
-    drawCornerLocations( image, bb, detection, img );
+    drawCornerLocations( image, bb, corners, img );
     saveDebugImage( img, PredictedCorners, false );
   }
 
-  void SubtagDetector::drawRefinedCornerLocations( const Mat &image, const cv::Rect &bb, const SubtagDetection &detection )
+  void SubtagDetector::drawRefinedCornerLocations( const Mat &image, const cv::Rect &bb, const vector<CornerDetection> &corners )
   {
     Mat img;
-    drawCornerLocations( image, bb, detection, img );
+    drawCornerLocations( image, bb, corners, img );
     saveDebugImage( img, RefinedCorners, false );
   }
 
 
-  void SubtagDetector::drawCornerLocations( const Mat &image, const cv::Rect &bb, const SubtagDetection &detection, Mat &dest )
+  void SubtagDetector::drawCornerLocations( const Mat &image, const cv::Rect &bb, const vector<CornerDetection> &corners, Mat &dest )
   {
     Mat imageRoi( image, bb );
     if( image.depth() != 3 )
-    cvtColor( imageRoi, dest, CV_GRAY2BGR );
+      cvtColor( imageRoi, dest, CV_GRAY2BGR );
     else
-    imageRoi.copyTo( dest );
+      imageRoi.copyTo( dest );
 
-    for( unsigned int i = 0; i < detection.corners.size(); ++i ) {
-      const CornerDetection &c( detection.corners[i] );
-
-      Point2f pt( c.inImage );
+    for( unsigned int i = 0; i < corners.size(); ++i ) {
+      Point2f pt( corners[i].inImage );
       pt.x -= bb.x;
       pt.y -= bb.y;
 
-      if( c.detectable() ) cv::circle( dest, pt, 4, Scalar(0,0,255), 1 );
+      if( corners[i].detectable() ) cv::circle( dest, pt, 4, Scalar(0,0,255), 1 );
 
       // Draw the corner code as well
       char out[3];
-      snprintf( out, 3, "%02x", detection.corners[i].corner );
+      snprintf( out, 3, "%02x", corners[i].corner );
       putText( dest, out, pt, FONT_HERSHEY_SIMPLEX , 0.4, Scalar( 0,255,0 ) );
 
     }

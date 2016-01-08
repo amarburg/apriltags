@@ -48,16 +48,14 @@ const TagCodes whichCode = tagCodes36h11;
   }
   ASSERT_GE( whichDetection, 0 );
 
-  SubtagDetection subtag( subtagDetector.detectTagSubstructure( inputImage, tags[whichDetection] ) );
-
+  vector<CornerDetection> corners( subtagDetector.detectTagSubstructure( inputImage, tags[whichDetection] ) );
 
   // Produce debug outputs
   imwrite( "predictedCorners.jpg", subtagDetector.debugImage( SubtagDetector::PredictedCorners ) );
   imwrite( "refinedCorners.jpg", subtagDetector.debugImage( SubtagDetector::RefinedCorners ) );
 
   const cv::Size sz( 50, 50 );
-  imwrite("expectedTag.jpg", Corners::drawTagMat( whichCode, tags[whichDetection].id,
-                                                  sz ));
+  imwrite("expectedTag.jpg", Corners::drawTagMat( whichCode, tags[whichDetection].id, sz ) );
   imwrite("expectedCorners.jpg", Corners::drawCornerMat( whichCode, tags[whichDetection].id, sz ) );
 
 }
@@ -82,15 +80,14 @@ TEST( SubtagDetectorTest, ObliqueImage ) {
     }
     ASSERT_GE( whichDetection, 0 );
 
-    SubtagDetection subtag( subtagDetector.detectTagSubstructure( inputImage, tags[whichDetection] ) );
+    vector<CornerDetection> corners( subtagDetector.detectTagSubstructure( inputImage, tags[whichDetection] ) );
 
     // Produce debug outputs
     imwrite( "oblique_predictedCorners.jpg", subtagDetector.debugImage( SubtagDetector::PredictedCorners) );
     imwrite( "oblique_refinedCorners.jpg", subtagDetector.debugImage( SubtagDetector::RefinedCorners) );
 
     const cv::Size sz( 50, 50 );
-    imwrite("oblique_expectedTag.jpg", Corners::drawTagMat( whichCode, tags[whichDetection].id,
-                                                    sz ));
+    imwrite("oblique_expectedTag.jpg", Corners::drawTagMat( whichCode, tags[whichDetection].id, sz ));
     imwrite("oblique_expectedCorners.jpg", Corners::drawCornerMat( whichCode, tags[whichDetection].id, sz ) );
 
 

@@ -10,6 +10,7 @@ namespace AprilTags {
   cv::Rect boundingBox( const TagDetection &detection );
 
   void expandBoundingBox( cv::Rect &bb, float expansion );
+  void clipBoundingBox( cv::Rect &bb, const cv::Mat &image );
 
 }
 

@@ -6,7 +6,7 @@
 #include <vector>
 #include <opencv2/core.hpp>
 
-#include "AprilTags/SubtagDetection.h"
+#include "AprilTags/CornerDetection.h"
 #include "AprilTags/TagDetection.h"
 
 namespace AprilTags {
@@ -16,14 +16,12 @@ namespace AprilTags {
 
   // This detector uses the corners to find substructure within an already
   // detected tag ...
-  // CornerDetector goes from nothing (raw image) to find tags by detecting
-  // corners.
   class SubtagDetector {
   public:
 
     SubtagDetector( const TagCodes &tagCodes );
 
-    SubtagDetection detectTagSubstructure(const Mat &image, const TagDetection &detection );
+    vector<CornerDetection> detectTagSubstructure(const Mat &image, const TagDetection &detection );
 
     float minPixPerEdge;
     cv::Size subPixSearchWindow;
@@ -32,25 +30,26 @@ namespace AprilTags {
 
     /* Intermediate images */
     enum DebugImages_t { PredictedCorners = 0,
-                   RefinedCorners = 1,
-                   NUM_DEBUG_IMAGES = 2
-            };
+                         RefinedCorners = 1,
+                         NUM_DEBUG_IMAGES = 2
+                        };
 
     Mat debugImage( DebugImages_t which );
 
   protected:
 
-    //== Debug image functions ==
+    void populateCorners( const TagDetection &detection, vector<CornerDetection> &corners );
+
+    //== Functions for generating and accessing debug images ==
     bool validDebugImage( DebugImages_t which );
     void saveDebugImage( const Mat &img, DebugImages_t which, bool clone = true );
 
     void drawPredictedCornerLocations( const Mat &image, const cv::Rect &bb,
-                                              const SubtagDetection &detection );
+                                              const vector<CornerDetection> &corners );
     void drawRefinedCornerLocations( const Mat &image, const cv::Rect &bb,
-                                              const SubtagDetection &detection );
-
+                                              const vector<CornerDetection> &corners );
     void drawCornerLocations( const Mat &image, const cv::Rect &bb,
-                               const SubtagDetection &detection,
+                               const vector<CornerDetection> &corner,
                                Mat &dest );
 
     const TagCodes &_code;
