@@ -12,13 +12,20 @@ namespace AprilTags {
   SubtagDetector::SubtagDetector( const TagCodes &tagCodes )
   : minPixPerEdge( 2.0 ),
   subPixSearchWindow( 5,5 ),
-  _code( tagCodes )
+  _code( tagCodes ),
+  _sigma( 0 )
   {;}
 
   vector<CornerDetection>
   SubtagDetector::detectTagSubstructure(const Mat& image, const TagDetection &detection )
   {
     vector<CornerDetection> corners;
+    Mat blurredImage( image );
+
+    if (_sigma > 0.0) {
+      int filtsz = ((int) max(3.0f, 3 * _sigma)) | 1;
+      GaussianBlur( image, blurredImage, Size(filtsz, filtsz), _sigma, _sigma );
+    } 
 
     // First the pass/fail checks.
 
@@ -38,13 +45,13 @@ namespace AprilTags {
 
     populateCorners( detection, corners );
 
-    if( _saveDebugImages ) drawPredictedCornerLocations( image, bb, corners );
+    if( _saveDebugImages ) drawPredictedCornerLocations( blurredImage, bb, corners );
 
     vector< Point2f > refinedLocations;
     std::transform( corners.begin(), corners.end(),
                     back_inserter<vector< Point2f > >(refinedLocations),
                     CornerDetection::InImageTx );
-    cornerSubPix( image, refinedLocations, subPixSearchWindow,  Size(-1,-1), TermCriteria() );
+    cornerSubPix( blurredImage, refinedLocations, subPixSearchWindow,  Size(-1,-1), TermCriteria() );
 
     assert( refinedLocations.size() == corners.size() );
     for( unsigned int i = 0; i < corners.size(); ++i ) {
@@ -53,7 +60,7 @@ namespace AprilTags {
         corners[i].inImage = refinedLocations[ i ];
     }
 
-    if( _saveDebugImages ) drawRefinedCornerLocations( image, bb, corners );
+    if( _saveDebugImages ) drawRefinedCornerLocations( blurredImage, bb, corners );
 
     return corners;
   }

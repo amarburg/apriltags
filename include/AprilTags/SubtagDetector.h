@@ -23,6 +23,9 @@ namespace AprilTags {
 
     vector<CornerDetection> detectTagSubstructure(const Mat &image, const TagDetection &detection );
 
+    float setSigma( float val )
+      { return _sigma = val; }
+
     float minPixPerEdge;
     cv::Size subPixSearchWindow;
 
@@ -53,6 +56,7 @@ namespace AprilTags {
                                Mat &dest );
 
     const TagCodes &_code;
+    float _sigma;
 
     bool _saveDebugImages;
     Mat _debugImages[ NUM_DEBUG_IMAGES ];
