@@ -88,7 +88,7 @@ namespace AprilTags {
   protected:
 
 
-  #ifdef BUILD_DEBUG_TAG_DETECTOR
+//  #ifdef BUILD_DEBUG_TAG_DETECTOR
     /*
     * If defined, will create derived DebugTagDetector with debug output
     * If undefined, these virtuals aren't needed.
@@ -99,7 +99,7 @@ namespace AprilTags {
     virtual void saveLineSegments( const vector<Segment> &segments ) {;}
     virtual void saveQuadImage( const vector<Quad> &quads )     {;}
     virtual void drawQuadBit( const cv::Point2f &pt, const cv::Scalar &color ) {;}
-  #endif
+//  #endif
 
 
   private:
