@@ -216,9 +216,7 @@ namespace AprilTags {
     inImage.convertTo( blurredImage, CV_32FC1, 1.0/255.0 );
   }
 
-#ifdef BUILD_DEBUG_TAG_DETECTOR
-  saveOriginalImage( blurredImage.empty() ? inImage : blurredImage );
-#endif
+  if( m_saveDebugImages ) saveOriginalImage( blurredImage.empty() ? inImage : blurredImage );
 
   if (m_Sigma > 0) {
     int filtsz = ((int) max(3.0f, 3 * m_Sigma)) | 1;
@@ -238,10 +236,7 @@ namespace AprilTags {
   //   GaussianBlur( originalImage, originalImage )
   // }
 
-#ifdef BUILD_DEBUG_TAG_DETECTOR
-  saveBlurredImage( blurredImage );
-#endif
-
+    if( m_saveDebugImages ) saveBlurredImage( blurredImage );
 
   //! Gaussian smoothing kernel applied to image (0 == no filter).
   /*! Used when sampling bits. Filtering is a good idea in cases
@@ -303,9 +298,7 @@ namespace AprilTags {
   // FloatImage fimTheta(fimSeg.getWidth(), fimSeg.getHeight());
   // FloatImage fimMag(fimSeg.getWidth(), fimSeg.getHeight());
 
-  #ifdef BUILD_DEBUG_TAG_DETECTOR
-    saveMagnitudeImage( magnitude );
-  #endif
+  if( m_saveDebugImages ) saveMagnitudeImage( magnitude );
 
 //   #pragma omp parallel for
 //   for (int y = 1; y < fimSeg.getHeight()-1; y++) {
@@ -424,9 +417,7 @@ namespace AprilTags {
     segments.push_back(seg);
   }
 
-#ifdef BUILD_DEBUG_TAG_DETECTOR
-  saveLineSegments( segments );
-#endif
+  if( m_saveDebugImages ) saveLineSegments( segments );
 
   // Step six: For each segment, find segments that begin where this segment ends.
   // (We will chain segments together next...) The gridder accelerates the search by
@@ -541,9 +532,7 @@ namespace AprilTags {
     } // for each contour
   } // if grey, 1 channel image
 
-#ifdef BUILD_DEBUG_TAG_DETECTOR
-  saveQuadImage( quads );
-#endif
+  if( m_saveDebugImages ) saveQuadImage( quads );
 
   //================================================================
   // Step eight. Decode the quads. For each quad, we first estimate a
@@ -598,15 +587,13 @@ namespace AprilTags {
         tagCode = tagCode << 1;
         if ( v > threshold) tagCode |= 1;
 
-#ifdef BUILD_DEBUG_TAG_DETECTOR
-        {
+        if( m_saveDebugImages ) {
           if (v>threshold){
             drawQuadBit( cv::Point2f(irx, iry), cv::Scalar(0,0,255,0) );
           } else {
             drawQuadBit( cv::Point2f(irx, iry), cv::Scalar(0,255,0,0) );
           }
         }
-#endif
       }
     }
 
@@ -706,96 +693,129 @@ namespace AprilTags {
 }
 
 /*
- *
+ *  Functions related to making debug images
  *
  */
 
-#ifdef BUILD_DEBUG_TAG_DETECTOR
-
-void DebugTagDetector::saveOriginalImage( const Mat &img )
-{
-  img.copyTo( savedOriginalImage );
-
-  // Convenience temporary
-  cvtColor( savedOriginalImage, originalBGR, COLOR_GRAY2BGR );
-}
-
-void DebugTagDetector::saveBlurredImage( const Mat &img )
-{
-  img.copyTo( savedBlurredImage );
-}
-
-void DebugTagDetector::saveMagnitudeImage( const Mat &img )
-{
-  double mn, mx;
-  minMaxLoc( img, &mn, &mx );
-
-  savedMagnitudeImage = img * 1.0/mx;
-}
-
-void DebugTagDetector::saveLineSegments( const vector<Segment> &segments )
-{
-  // Boost back to color imagery for better annotation
-  originalBGR.copyTo( savedLineSegmentsImage );
-
-  for( vector<Segment>::const_iterator it = segments.begin(); it!=segments.end(); it++ ) {
-    long int r = random();
-    cv::line(savedLineSegmentsImage,
-              cv::Point2f(it->getX0(), it->getY0()),
-              cv::Point2f(it->getX1(), it->getY1()),
-              cv::Scalar(r%0xff,(r%0xff00)>>8,(r%0xff0000)>>16,0) );
+  bool TagDetector::validDebugImage( DebugImages_t which )
+  {
+    return (which >= 0) && (which < TagDetector::NUM_DEBUG_IMAGES);
   }
-}
 
-void DebugTagDetector::saveQuadImage( const vector<Quad> &quads )
-{
-  originalBGR.copyTo( savedQuadImage );
-
-    // int height_ = fimOrig.getHeight();
-    // int width_  = fimOrig.getWidth();
-    // cv::Mat debugImage2(height_, width_, CV_8UC3);
-    // for (int y=0; y<height_; y++) {
-    //   for (int x=0; x<width_; x++) {
-    //     cv::Vec3b v;
-    //     for (int k=0; k<3; k++) {
-    //       v(k) = 0;
-    //     }
-    //     debugImage2.at<cv::Vec3b>(y, x) = v;
-    //   }
-    // }
-
-const cv::Scalar Red( 0, 0, 255, 0 ),
-                 Green( 0, 255, 0, 0 );
-
-  for (unsigned int qi = 0; qi < quads.size(); qi++ ) {
-    const Quad &quad = quads[qi];
-    std::pair<float, float> p1 = quad.quadPoints[0];
-    std::pair<float, float> p2 = quad.quadPoints[1];
-    std::pair<float, float> p3 = quad.quadPoints[2];
-    std::pair<float, float> p4 = quad.quadPoints[3];
-    cv::line(savedQuadImage, cv::Point2f(p1.first, p1.second), cv::Point2f(p2.first, p2.second), Red );
-    cv::line(savedQuadImage, cv::Point2f(p2.first, p2.second), cv::Point2f(p3.first, p3.second), Red );
-    cv::line(savedQuadImage, cv::Point2f(p3.first, p3.second), cv::Point2f(p4.first, p4.second), Red );
-    cv::line(savedQuadImage, cv::Point2f(p4.first, p4.second), cv::Point2f(p1.first, p1.second), Red );
-
-    p1 = quad.interpolate(-1,-1);
-    p2 = quad.interpolate(-1,1);
-    p3 = quad.interpolate(1,1);
-    p4 = quad.interpolate(1,-1);
-    cv::circle(savedQuadImage, cv::Point2f(p1.first, p1.second), 3, Green, 1);
-    cv::circle(savedQuadImage, cv::Point2f(p2.first, p2.second), 3, Green, 1);
-    cv::circle(savedQuadImage, cv::Point2f(p3.first, p3.second), 3, Green, 1);
-    cv::circle(savedQuadImage, cv::Point2f(p4.first, p4.second), 3, Green, 1);
+  bool TagDetector::SaveDebugImages( bool val )
+  {
+    return m_saveDebugImages = val;
   }
-}
 
-// Unlike the other functions, this does not create a new image
-// But simply overlays a point on the quadImage
-void DebugTagDetector::drawQuadBit( const cv::Point2f &pt, const cv::Scalar &color )
-{
-  cv::circle(savedQuadImage, pt, 1, color, 2);
-}
+  Mat TagDetector::debugImage( DebugImages_t which )
+  {
+    if( validDebugImage( which ) )
+      return _debugImages[which];
 
-#endif
+    return Mat();
+  }
+
+  void TagDetector::saveDebugImage( const Mat &img, DebugImages_t which, bool clone )
+  {
+    if( validDebugImage( which ) ) {
+      if( clone )
+        img.copyTo(_debugImages[which]);
+      else
+        _debugImages[which] = img;
+    }
+  }
+
+  void TagDetector::saveOriginalImage( const Mat &img )
+  {
+    saveDebugImage( img, OriginalImage );
+
+    // Convenience temporary
+    Mat originalBgr;
+    cvtColor( img, originalBgr, COLOR_GRAY2BGR );
+    saveDebugImage( originalBgr, OriginalBGRImage, false );
+  }
+
+  void TagDetector::saveBlurredImage( const Mat &img )
+  {
+    saveDebugImage( img, BlurredImage );
+
+  }
+
+  void TagDetector::saveMagnitudeImage( const Mat &img )
+  {
+    double mn, mx;
+    minMaxLoc( img, &mn, &mx );
+
+    saveDebugImage( (img * 1.0/mx), MagnitudeImage );
+  }
+
+  void TagDetector::saveLineSegments( const vector<Segment> &segments )
+  {
+    Mat savedLineSegmentsImage;
+    // Boost back to color imagery for better annotation
+    debugImage( OriginalBGRImage ).copyTo( savedLineSegmentsImage );
+
+    for( vector<Segment>::const_iterator it = segments.begin(); it!=segments.end(); it++ ) {
+      long int r = random();
+      cv::line(savedLineSegmentsImage,
+                cv::Point2f(it->getX0(), it->getY0()),
+                cv::Point2f(it->getX1(), it->getY1()),
+                cv::Scalar(r%0xff,(r%0xff00)>>8,(r%0xff0000)>>16,0) );
+    }
+
+    saveDebugImage( savedLineSegmentsImage, LineSegmentsImage, false );
+  }
+
+  void TagDetector::saveQuadImage( const vector<Quad> &quads )
+  {
+    Mat savedQuadImage;
+    debugImage( OriginalBGRImage ).copyTo( savedQuadImage );
+
+      // int height_ = fimOrig.getHeight();
+      // int width_  = fimOrig.getWidth();
+      // cv::Mat debugImage2(height_, width_, CV_8UC3);
+      // for (int y=0; y<height_; y++) {
+      //   for (int x=0; x<width_; x++) {
+      //     cv::Vec3b v;
+      //     for (int k=0; k<3; k++) {
+      //       v(k) = 0;
+      //     }
+      //     debugImage2.at<cv::Vec3b>(y, x) = v;
+      //   }
+      // }
+
+  const cv::Scalar Red( 0, 0, 255, 0 ),
+                   Green( 0, 255, 0, 0 );
+
+    for (unsigned int qi = 0; qi < quads.size(); qi++ ) {
+      const Quad &quad = quads[qi];
+      std::pair<float, float> p1 = quad.quadPoints[0];
+      std::pair<float, float> p2 = quad.quadPoints[1];
+      std::pair<float, float> p3 = quad.quadPoints[2];
+      std::pair<float, float> p4 = quad.quadPoints[3];
+      cv::line(savedQuadImage, cv::Point2f(p1.first, p1.second), cv::Point2f(p2.first, p2.second), Red );
+      cv::line(savedQuadImage, cv::Point2f(p2.first, p2.second), cv::Point2f(p3.first, p3.second), Red );
+      cv::line(savedQuadImage, cv::Point2f(p3.first, p3.second), cv::Point2f(p4.first, p4.second), Red );
+      cv::line(savedQuadImage, cv::Point2f(p4.first, p4.second), cv::Point2f(p1.first, p1.second), Red );
+
+      p1 = quad.interpolate(-1,-1);
+      p2 = quad.interpolate(-1,1);
+      p3 = quad.interpolate(1,1);
+      p4 = quad.interpolate(1,-1);
+      cv::circle(savedQuadImage, cv::Point2f(p1.first, p1.second), 3, Green, 1);
+      cv::circle(savedQuadImage, cv::Point2f(p2.first, p2.second), 3, Green, 1);
+      cv::circle(savedQuadImage, cv::Point2f(p3.first, p3.second), 3, Green, 1);
+      cv::circle(savedQuadImage, cv::Point2f(p4.first, p4.second), 3, Green, 1);
+    }
+
+    saveDebugImage( savedQuadImage, QuadImage, false );
+  }
+
+  // Unlike the other functions, this does not create a new image
+  // But simply overlays a point on the quadImage
+  void TagDetector::drawQuadBit( const cv::Point2f &pt, const cv::Scalar &color )
+  {
+    cv::circle( _debugImages[QuadImage], pt, 1, color, 2);
+  }
 
 } // namespace

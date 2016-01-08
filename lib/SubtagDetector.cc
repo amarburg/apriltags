@@ -7,99 +7,133 @@ using namespace std;
 
 namespace AprilTags {
 
-using namespace cv;
+  using namespace cv;
 
-SubtagDetector::SubtagDetector( const TagCodes &tagCodes )
-: minPixPerEdge( 2.0 ),
+  SubtagDetector::SubtagDetector( const TagCodes &tagCodes )
+  : minPixPerEdge( 2.0 ),
   subPixSearchWindow( 5,5 ),
   _code( tagCodes )
-{;}
+  {;}
 
-SubtagDetection
-SubtagDetector::detectTagSubstructure(const Mat& image, const TagDetection &detection )
-{
-  SubtagDetection d( _code, detection );
-  // First a quick scale check.  Determine the bounding box for the tag.
-  // Needs to be at least at least minPixPerEdge * edge pixels wide before
-  // detection is attempted.
-  Rect bb( boundingBox( detection ) );
+  SubtagDetection
+  SubtagDetector::detectTagSubstructure(const Mat& image, const TagDetection &detection )
+  {
+    SubtagDetection d( _code, detection );
+    // First a quick scale check.  Determine the bounding box for the tag.
+    // Needs to be at least at least minPixPerEdge * edge pixels wide before
+    // detection is attempted.
+    Rect bb( boundingBox( detection ) );
 
-  float minPix = minPixPerEdge * _code.dim;
-  if( (bb.width < minPix) || (bb.height < minPix) ) return d;
+    float minPix = minPixPerEdge * _code.dim;
+    if( (bb.width < minPix) || (bb.height < minPix) ) return d;
 
-  // Identify, extract and warp to planar/upright ROI in the image based on the detection.
-  //cout << "Bounding box is " << bb.width << " x " << bb.height << endl;
+    // Identify, extract and warp to planar/upright ROI in the image based on the detection.
+    //cout << "Bounding box is " << bb.width << " x " << bb.height << endl;
 
-  const float expansion = 0.1;
-  expandBoundingBox( bb, expansion );
+    const float expansion = 0.1;
+    expandBoundingBox( bb, expansion );
 
-  // TODO: When do we clip to edge of image?
+    // TODO: When do we clip to edge of image?
 
-#ifdef BUILD_DEBUG_TAG_DETECTOR
-  drawPredictedCornerLocations( image, bb, d );
-#endif
+    if( _saveDebugImages ) drawPredictedCornerLocations( image, bb, d );
 
-  // Attempt to refine corner location
-  vector< Point2f > detectableCorners;
-  for( unsigned int i = 0; i < d.corners.size(); ++i ) {
-    if( d.corners[i].detectable() ) detectableCorners.push_back( d.corners[i].inImage );
+    // Attempt to refine corner location
+    vector< Point2f > detectableCorners;
+    for( unsigned int i = 0; i < d.corners.size(); ++i ) {
+      if( d.corners[i].detectable() ) detectableCorners.push_back( d.corners[i].inImage );
+    }
+
+    cornerSubPix( image, detectableCorners, subPixSearchWindow,  Size(-1,-1), TermCriteria() );
+
+    for( unsigned int i = 0, c = 0; i < d.corners.size(); ++i ) {
+      if( c >= detectableCorners.size() ) break;   // This shouldn't happen
+      if( d.corners[i].detectable() ) {
+        // Consider other heuristics here
+        d.corners[i].detected = true;
+        d.corners[i].inImage = detectableCorners[ c ];
+        c++;
+      }
+    }
+
+    if( _saveDebugImages ) drawRefinedCornerLocations( image, bb, d );
+
+    return d;
   }
 
-  cornerSubPix( image, detectableCorners, subPixSearchWindow,  Size(-1,-1), TermCriteria() );
 
-  for( unsigned int i = 0, c = 0; i < d.corners.size(); ++i ) {
-    if( c >= detectableCorners.size() ) break;   // This shouldn't happen
-    if( d.corners[i].detectable() ) {
-      // Consider other heuristics here
-      d.corners[i].detected = true;
-      d.corners[i].inImage = detectableCorners[ c ];
-      c++;
+
+  //========= Debug Functions ======================================
+
+   bool SubtagDetector::validDebugImage( DebugImages_t which )
+  {
+    return (which >= 0) && (which < NUM_DEBUG_IMAGES);
+  }
+
+  bool SubtagDetector::saveDebugImages( bool val )
+  {
+    return _saveDebugImages = val;
+  }
+
+  Mat SubtagDetector::debugImage( DebugImages_t which )
+  {
+    if( validDebugImage( which ) )
+    return _debugImages[which];
+
+    return Mat();
+  }
+
+  void SubtagDetector::saveDebugImage( const Mat &img, DebugImages_t which, bool clone )
+  {
+    if( validDebugImage( which ) ) {
+      if( clone )
+        img.copyTo(_debugImages[which]);
+      else
+        _debugImages[which] = img;
     }
   }
 
-#ifdef BUILD_DEBUG_TAG_DETECTOR
-  drawRefinedCornerLocations( image, bb, d );
-#endif
+  void SubtagDetector::drawPredictedCornerLocations( const Mat &image, const cv::Rect &bb, const SubtagDetection &detection )
+  {
+    Mat img;
+    drawCornerLocations( image, bb, detection, img );
+    saveDebugImage( img, PredictedCorners, false );
+  }
 
-  return d;
-}
+  void SubtagDetector::drawRefinedCornerLocations( const Mat &image, const cv::Rect &bb, const SubtagDetection &detection )
+  {
+    Mat img;
+    drawCornerLocations( image, bb, detection, img );
+    saveDebugImage( img, RefinedCorners, false );
+  }
 
 
-#ifdef BUILD_DEBUG_TAG_DETECTOR
-
-//========= DebugSubtagDetector ======================================
-
-
-void DebugSubtagDetector::drawCornerLocations( const Mat &image, const cv::Rect &bb,
-                                                        const SubtagDetection &detection,
-                                                Mat &dest )
-{
-  Mat imageRoi( image, bb );
-  if( image.depth() != 3 )
+  void SubtagDetector::drawCornerLocations( const Mat &image, const cv::Rect &bb, const SubtagDetection &detection, Mat &dest )
+  {
+    Mat imageRoi( image, bb );
+    if( image.depth() != 3 )
     cvtColor( imageRoi, dest, CV_GRAY2BGR );
-  else
+    else
     imageRoi.copyTo( dest );
 
-  for( unsigned int i = 0; i < detection.corners.size(); ++i ) {
-    const CornerDetection &c( detection.corners[i] );
+    for( unsigned int i = 0; i < detection.corners.size(); ++i ) {
+      const CornerDetection &c( detection.corners[i] );
 
-    Point2f pt( c.inImage );
-    pt.x -= bb.x;
-    pt.y -= bb.y;
+      Point2f pt( c.inImage );
+      pt.x -= bb.x;
+      pt.y -= bb.y;
 
-    if( c.detectable() ) cv::circle( dest, pt, 4, Scalar(0,0,255), 1 );
+      if( c.detectable() ) cv::circle( dest, pt, 4, Scalar(0,0,255), 1 );
 
-    // Draw the corner code as well
-    char out[3];
-    snprintf( out, 3, "%02x", detection.corners[i].corner );
-    putText( dest, out, pt, FONT_HERSHEY_SIMPLEX , 0.4, Scalar( 0,255,0 ) );
+      // Draw the corner code as well
+      char out[3];
+      snprintf( out, 3, "%02x", detection.corners[i].corner );
+      putText( dest, out, pt, FONT_HERSHEY_SIMPLEX , 0.4, Scalar( 0,255,0 ) );
+
+    }
 
   }
 
-}
 
-
-#endif
 
 
 }

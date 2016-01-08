@@ -34,11 +34,8 @@ const TagCodes whichCode = tagCodes36h11;
   Mat inputImage( load36H11GreyscaleImage() );
   std::vector<TagDetection> tags = detector.extractTags( inputImage );
 
-#ifdef BUILD_DEBUG_TAG_DETECTOR
-  DebugSubtagDetector subtagDetector( whichCode );
-#else
   SubtagDetector subtagDetector( whichCode );
-#endif
+  subtagDetector.saveDebugImages( true );
 
   int whichId = 143;
   // Find tag 143 in the vector of detections
@@ -54,16 +51,14 @@ const TagCodes whichCode = tagCodes36h11;
   SubtagDetection subtag( subtagDetector.detectTagSubstructure( inputImage, tags[whichDetection] ) );
 
 
-#ifdef BUILD_DEBUG_TAG_DETECTOR
   // Produce debug outputs
-  imwrite( "predictedCorners.jpg", subtagDetector.predictedCorners );
-  imwrite( "refinedCorners.jpg", subtagDetector.refinedCorners );
+  imwrite( "predictedCorners.jpg", subtagDetector.debugImage( SubtagDetector::PredictedCorners ) );
+  imwrite( "refinedCorners.jpg", subtagDetector.debugImage( SubtagDetector::RefinedCorners ) );
 
   const cv::Size sz( 50, 50 );
   imwrite("expectedTag.jpg", Corners::drawTagMat( whichCode, tags[whichDetection].id,
                                                   sz ));
   imwrite("expectedCorners.jpg", Corners::drawCornerMat( whichCode, tags[whichDetection].id, sz ) );
-#endif
 
 }
 
@@ -73,11 +68,8 @@ TEST( SubtagDetectorTest, ObliqueImage ) {
   Mat inputImage( load36H11ObliqueGreyscaleImage() );
   std::vector<TagDetection> tags = detector.extractTags( inputImage );
 
-  #ifdef BUILD_DEBUG_TAG_DETECTOR
-    DebugSubtagDetector subtagDetector( whichCode );
-  #else
-    SubtagDetector subtagDetector( whichCode );
-  #endif
+  SubtagDetector subtagDetector( whichCode );
+  subtagDetector.saveDebugImages( true );
 
     int whichId = 90;
 
@@ -92,16 +84,14 @@ TEST( SubtagDetectorTest, ObliqueImage ) {
 
     SubtagDetection subtag( subtagDetector.detectTagSubstructure( inputImage, tags[whichDetection] ) );
 
-  #ifdef BUILD_DEBUG_TAG_DETECTOR
     // Produce debug outputs
-    imwrite( "oblique_predictedCorners.jpg", subtagDetector.predictedCorners );
-    imwrite( "oblique_refinedCorners.jpg", subtagDetector.refinedCorners );
+    imwrite( "oblique_predictedCorners.jpg", subtagDetector.debugImage( SubtagDetector::PredictedCorners) );
+    imwrite( "oblique_refinedCorners.jpg", subtagDetector.debugImage( SubtagDetector::RefinedCorners) );
 
     const cv::Size sz( 50, 50 );
     imwrite("oblique_expectedTag.jpg", Corners::drawTagMat( whichCode, tags[whichDetection].id,
                                                     sz ));
     imwrite("oblique_expectedCorners.jpg", Corners::drawCornerMat( whichCode, tags[whichDetection].id, sz ) );
-  #endif
 
 
 }

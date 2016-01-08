@@ -28,46 +28,37 @@ namespace AprilTags {
     float minPixPerEdge;
     cv::Size subPixSearchWindow;
 
+    bool saveDebugImages( bool val );
+
+    /* Intermediate images */
+    enum DebugImages_t { PredictedCorners = 0,
+                   RefinedCorners = 1,
+                   NUM_DEBUG_IMAGES = 2
+            };
+
+    Mat debugImage( DebugImages_t which );
+
   protected:
 
-#ifdef BUILD_DEBUG_TAG_DETECTOR
-  virtual void drawPredictedCornerLocations( const Mat &image, const cv::Rect &bb,
-                                              const SubtagDetection &detection ) {;}
-  virtual void drawRefinedCornerLocations( const Mat &image, const cv::Rect &bb,
-                                              const SubtagDetection &detection ) {;}
-#endif
+    //== Debug image functions ==
+    bool validDebugImage( DebugImages_t which );
+    void saveDebugImage( const Mat &img, DebugImages_t which, bool clone = true );
+
+    void drawPredictedCornerLocations( const Mat &image, const cv::Rect &bb,
+                                              const SubtagDetection &detection );
+    void drawRefinedCornerLocations( const Mat &image, const cv::Rect &bb,
+                                              const SubtagDetection &detection );
+
+    void drawCornerLocations( const Mat &image, const cv::Rect &bb,
+                               const SubtagDetection &detection,
+                               Mat &dest );
 
     const TagCodes &_code;
 
-  };
-
-#ifdef BUILD_DEBUG_TAG_DETECTOR
-
-  class DebugSubtagDetector : public SubtagDetector {
-  public:
-
-    DebugSubtagDetector( const TagCodes &tagCodes )
-      : SubtagDetector( tagCodes )
-    {;}
-
-    virtual void drawPredictedCornerLocations( const Mat &image, const cv::Rect &bb,
-                                                const SubtagDetection &detection )
-      { drawCornerLocations( image, bb, detection, predictedCorners ); }
-
-    virtual void drawRefinedCornerLocations( const Mat &image, const cv::Rect &bb,
-                                                const SubtagDetection &detection )
-      { drawCornerLocations( image, bb, detection, refinedCorners ); }
-
-     void drawCornerLocations( const Mat &image, const cv::Rect &bb,
-                                const SubtagDetection &detection,
-                                Mat &dest );
-
-
-    Mat predictedCorners, refinedCorners;
+    bool _saveDebugImages;
+    Mat _debugImages[ NUM_DEBUG_IMAGES ];
 
   };
-
-#endif
 
 }
 

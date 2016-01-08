@@ -43,8 +43,6 @@ TEST( TagDetectorTest, DefaultConfiguration ) {
   validate_36h11_tags( tags );
 }
 
-#ifdef BUILD_DEBUG_TAG_DETECTOR
-
 static void write32FC1( const string &filename, const Mat &img )
 {
   Mat out;
@@ -53,30 +51,28 @@ static void write32FC1( const string &filename, const Mat &img )
 }
 
 
-TEST( DebugTagDetectorTest, DefaultConfiguration ) {
-  DebugTagDetector detector( tagCodes36h11 );
+TEST( TagDetectorTest, DebugConfiguration ) {
+  TagDetector detector( tagCodes36h11 );
+  detector.SaveDebugImages(true);
 
   Mat inputImage( load36H11GreyscaleImage() );
 
   std::vector<TagDetection> tags = detector.extractTags( inputImage );
 
-  EXPECT_EQ( detector.savedOriginalImage.size(), inputImage.size() );
-  EXPECT_EQ( detector.savedBlurredImage.size(), inputImage.size() );
-  EXPECT_EQ( detector.savedMagnitudeImage.size(), inputImage.size() );
-  EXPECT_EQ( detector.savedLineSegmentsImage.size(), inputImage.size() );
-  EXPECT_EQ( detector.savedQuadImage.size(), inputImage.size() );
+  EXPECT_EQ( detector.debugImage(TagDetector::OriginalImage).size(), inputImage.size() );
+  EXPECT_EQ( detector.debugImage(TagDetector::BlurredImage).size(), inputImage.size() );
+  EXPECT_EQ( detector.debugImage(TagDetector::MagnitudeImage).size(), inputImage.size() );
+  EXPECT_EQ( detector.debugImage(TagDetector::LineSegmentsImage).size(), inputImage.size() );
+  EXPECT_EQ( detector.debugImage(TagDetector::QuadImage).size(), inputImage.size() );
 
-  write32FC1("/tmp/original.jpg", detector.savedOriginalImage );
-  write32FC1("/tmp/low_pass_image.jpg", detector.savedBlurredImage );
-  write32FC1("/tmp/magnitude.jpg", detector.savedMagnitudeImage );
-  write32FC1("/tmp/line_segment_image.jpg", detector.savedLineSegmentsImage );
-  write32FC1("/tmp/quad_image.jpg", detector.savedQuadImage );
+  write32FC1("/tmp/original.jpg", detector.debugImage(TagDetector::OriginalImage) );
+  write32FC1("/tmp/low_pass_image.jpg", detector.debugImage(TagDetector::BlurredImage) );
+  write32FC1("/tmp/magnitude.jpg", detector.debugImage(TagDetector::MagnitudeImage) );
+  write32FC1("/tmp/line_segment_image.jpg", detector.debugImage(TagDetector::LineSegmentsImage) );
+  write32FC1("/tmp/quad_image.jpg", detector.debugImage(TagDetector::QuadImage) );
 
   validate_36h11_tags( tags );
 }
-
-#endif
-
 
 TEST( TagDetectorTest, ObliqueImage ) {
   TagDetector detector( tagCodes36h11 );

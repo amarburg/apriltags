@@ -36,7 +36,8 @@ namespace AprilTags {
         m_BlockSize( DefaultAdaptiveThresholdRadius ),
         m_Offset( DefaultAdaptiveThresholdOffset ),
         m_Sigma(0),
-        m_SegmentationSigma(0.8) {}
+        m_SegmentationSigma(0.8),
+        m_saveDebugImages( false ) {}
 
   	std::vector<TagDetection> extractTags(const Mat& image);
 
@@ -84,23 +85,20 @@ namespace AprilTags {
      */
     void SetSegmentationSigma( float segmentationSigma);
 
+    bool SaveDebugImages( bool val );
 
-  protected:
+    /* Intermediate images */
+    enum  DebugImages_t {
+            OriginalImage = 0,
+            OriginalBGRImage = 1,
+            BlurredImage = 2,
+            MagnitudeImage = 3,
+            LineSegmentsImage = 4,
+            QuadImage = 5,
+            NUM_DEBUG_IMAGES = 6
+            };
 
-
-//  #ifdef BUILD_DEBUG_TAG_DETECTOR
-    /*
-    * If defined, will create derived DebugTagDetector with debug output
-    * If undefined, these virtuals aren't needed.
-    */
-    virtual void saveOriginalImage( const Mat &img )            {;}
-    virtual void saveBlurredImage( const Mat &img )             {;}
-    virtual void saveMagnitudeImage( const Mat &img )           {;}
-    virtual void saveLineSegments( const vector<Segment> &segments ) {;}
-    virtual void saveQuadImage( const vector<Quad> &quads )     {;}
-    virtual void drawQuadBit( const cv::Point2f &pt, const cv::Scalar &color ) {;}
-//  #endif
-
+    Mat debugImage( DebugImages_t which );
 
   private:
 
@@ -113,6 +111,15 @@ namespace AprilTags {
       Segment& seg
     );
 
+    bool validDebugImage( DebugImages_t which );
+    void saveDebugImage( const Mat &img, DebugImages_t which, bool clone = true );
+    void saveOriginalImage( const Mat &img );
+    void saveBlurredImage( const Mat &img );
+    void saveMagnitudeImage( const Mat &img );
+    void saveLineSegments( const vector<Segment> &segments );
+    void saveQuadImage( const vector<Quad> &quads );
+    void drawQuadBit( const cv::Point2f &pt, const cv::Scalar &color );
+
     // Parameters
     bool m_UseHybrid;
     float m_MinSize;
@@ -122,34 +129,10 @@ namespace AprilTags {
     float m_Sigma;
     float m_SegmentationSigma;
 
+    Mat _debugImages[ NUM_DEBUG_IMAGES ];
+    bool m_saveDebugImages;
+
   };
-
-  #ifdef BUILD_DEBUG_TAG_DETECTOR
-
-  class DebugTagDetector : public TagDetector {
-  public:
-    DebugTagDetector(const TagCodes& tagCodes)
-      : TagDetector( tagCodes )  {;}
-
-    /* Debug outputs */
-
-    // These are CV_32FC1
-    Mat savedOriginalImage, savedBlurredImage, savedMagnitudeImage;
-
-    // These are CV_32FC3, generated from the originalImage
-    // but allowing for color annotations
-    Mat originalBGR, savedLineSegmentsImage, savedQuadImage;
-
-  protected:
-    virtual void saveOriginalImage( const Mat &img );
-    virtual void saveBlurredImage( const Mat &img );
-    virtual void saveMagnitudeImage( const Mat &img );
-    virtual void saveLineSegments( const vector<Segment> &segments );
-    virtual void saveQuadImage( const vector<Quad> &quads );
-    virtual void drawQuadBit( const cv::Point2f &pt, const cv::Scalar &color );
-  };
-
-  #endif
 
 } // namespace
 

@@ -38,11 +38,6 @@ install(TARGETS apriltags
   )
 
 ## Configurable options
-option( BUILD_DETECTOR_WITH_DEBUG "Build TagDetector with debug outputs" ON )
-if( BUILD_DETECTOR_WITH_DEBUG )
-  add_definitions( -DBUILD_DEBUG_TAG_DETECTOR )
-endif()
-
 option( USE_OPENMP "Build with OpenMP" ON )
 if( USE_OPENMP )
   add_definitions( -DUSE_OPENMP )
