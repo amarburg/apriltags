@@ -25,7 +25,7 @@ namespace AprilTags {
     if (_sigma > 0.0) {
       int filtsz = ((int) max(3.0f, 3 * _sigma)) | 1;
       GaussianBlur( image, blurredImage, Size(filtsz, filtsz), _sigma, _sigma );
-    } 
+    }
 
     // First the pass/fail checks.
 
@@ -45,7 +45,7 @@ namespace AprilTags {
 
     populateCorners( detection, corners );
 
-    if( _saveDebugImages ) drawPredictedCornerLocations( blurredImage, bb, corners );
+    if( _saveDebugImages ) drawPredictedCornerLocations( blurredImage, bb, corners, detection );
 
     vector< Point2f > refinedLocations;
     std::transform( corners.begin(), corners.end(),
@@ -60,7 +60,7 @@ namespace AprilTags {
         corners[i].inImage = refinedLocations[ i ];
     }
 
-    if( _saveDebugImages ) drawRefinedCornerLocations( blurredImage, bb, corners );
+    if( _saveDebugImages ) drawRefinedCornerLocations( blurredImage, bb, corners, detection );
 
     return corners;
   }
@@ -76,6 +76,7 @@ namespace AprilTags {
      for( Point p(0,0); p.y < cornerMat.rows; ++p.y ) {
        for( p.x = 0;    p.x < cornerMat.cols; ++p.x ) {
           CornerDetection c( cornerMat.at<unsigned char>(p) );
+
           if( c.detectable() == false ) continue;
 
           // Translate to the in-tag location.
@@ -125,22 +126,26 @@ namespace AprilTags {
     }
   }
 
-  void SubtagDetector::drawPredictedCornerLocations( const Mat &image, const cv::Rect &bb, const vector<CornerDetection> &corners )
+  void SubtagDetector::drawPredictedCornerLocations( const Mat &image, const cv::Rect &bb,
+        const vector<CornerDetection> &corners, const TagDetection &detection )
   {
     Mat img;
-    drawCornerLocations( image, bb, corners, img );
+    drawCornerLocations( image, bb, corners, detection, img );
     saveDebugImage( img, PredictedCorners, false );
   }
 
-  void SubtagDetector::drawRefinedCornerLocations( const Mat &image, const cv::Rect &bb, const vector<CornerDetection> &corners )
+  void SubtagDetector::drawRefinedCornerLocations( const Mat &image, const cv::Rect &bb,
+        const vector<CornerDetection> &corners, const TagDetection &detection )
   {
     Mat img;
-    drawCornerLocations( image, bb, corners, img );
+    drawCornerLocations( image, bb, corners, detection, img );
     saveDebugImage( img, RefinedCorners, false );
   }
 
 
-  void SubtagDetector::drawCornerLocations( const Mat &image, const cv::Rect &bb, const vector<CornerDetection> &corners, Mat &dest )
+  void SubtagDetector::drawCornerLocations( const Mat &image, const cv::Rect &bb,
+        const vector<CornerDetection> &corners, const TagDetection &detection,
+        Mat &dest )
   {
     Mat imageRoi( image, bb );
     if( image.depth() != 3 )
@@ -148,10 +153,10 @@ namespace AprilTags {
     else
       imageRoi.copyTo( dest );
 
+    Point2f bbOrigin( bb.x, bb.y );
     for( unsigned int i = 0; i < corners.size(); ++i ) {
       Point2f pt( corners[i].inImage );
-      pt.x -= bb.x;
-      pt.y -= bb.y;
+      pt -= bbOrigin;
 
       if( corners[i].detectable() ) cv::circle( dest, pt, 4, Scalar(0,0,255), 1 );
 
@@ -160,7 +165,20 @@ namespace AprilTags {
       snprintf( out, 3, "%02x", corners[i].corner );
       putText( dest, out, pt, FONT_HERSHEY_SIMPLEX , 0.4, Scalar( 0,255,0 ) );
 
+
     }
+
+    // Draw an arrow
+    Point2f origin( detection.interpolatePt( Point2f(0,0) ) );
+    origin -= bbOrigin;
+    Point2f tipX( detection.interpolatePt( Point2f( 1,0 ) ) ),
+            tipY( detection.interpolatePt( Point2f( 0,0.5 ) ) );
+    tipX -= bbOrigin;
+    tipY -= bbOrigin;
+
+    cv::line( dest, origin, tipX, Scalar(0,0,255), 1 );
+    cv::line( dest, origin, tipY, Scalar(0,0,255), 1 );
+
 
   }
 

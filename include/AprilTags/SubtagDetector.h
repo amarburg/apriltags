@@ -41,18 +41,19 @@ namespace AprilTags {
 
   protected:
 
-    void populateCorners( const TagDetection &detection, vector<CornerDetection> &corners );
+    void populateCorners( const TagDetection &detection, vector<CornerDetection> &corners  );
 
     //== Functions for generating and accessing debug images ==
     bool validDebugImage( DebugImages_t which );
     void saveDebugImage( const Mat &img, DebugImages_t which, bool clone = true );
 
     void drawPredictedCornerLocations( const Mat &image, const cv::Rect &bb,
-                                              const vector<CornerDetection> &corners );
+                                              const vector<CornerDetection> &corners, const TagDetection &detection );
     void drawRefinedCornerLocations( const Mat &image, const cv::Rect &bb,
-                                              const vector<CornerDetection> &corners );
+                                              const vector<CornerDetection> &corners, const TagDetection &detection );
     void drawCornerLocations( const Mat &image, const cv::Rect &bb,
                                const vector<CornerDetection> &corner,
+                               const TagDetection &detection,
                                Mat &dest );
 
     const TagCodes &_code;
