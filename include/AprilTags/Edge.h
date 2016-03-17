@@ -53,7 +53,7 @@ public:
 			std::vector<Edge> &edges, size_t &nEdges);
 
   //! Process edges in order of increasing cost, merging clusters if we can do so without exceeding the thetaThresh.
-  static void mergeEdges(std::vector<Edge> &edges, UnionFindSimple &uf, float tmin[], float tmax[], float mmin[], float mmax[]);
+  static void mergeEdges(std::vector<Edge> &edges, UnionFindSimple &uf, float tmin[], float tmax[], float mmin[], float mmax[], long int imgSize );
 
 };
 

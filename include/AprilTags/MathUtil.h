@@ -3,6 +3,8 @@
 #ifndef MATHUTIL_H
 #define MATHUTIL_H
 
+#include <opencv2/core/core.hpp>
+
 #include <cmath>
 #include <cfloat>
 #include <cstdlib>
@@ -24,6 +26,18 @@ public:
 
 	//! Returns the square of a value.
 	static inline float square(float x) { return x*x; }
+
+	static inline cv::Point2f meanPoint( const cv::Point2f &a, const cv::Point2f &b)
+	{
+		return cv::Point2f( float(a.x+b.x)/2, float(a.y+b.y)/2 );
+	}
+
+	static inline float distance2Dsqr( const cv::Point2f &a, const cv::Point2f b )
+	{
+		float dx = a.x - b.x;
+		float dy = a.y - b.y;
+		return (dx*dx + dy*dy);
+	}
 
 	static inline float distance2D(const std::pair<float,float> &p0, const std::pair<float,float> &p1) {
 		float dx = p0.first - p1.first;

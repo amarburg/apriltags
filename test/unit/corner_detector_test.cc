@@ -8,6 +8,7 @@ using namespace cv;
 #include "AprilTags/CornerDetector.h"
 using namespace AprilTags;
 
+#include "../test_common.h"
 #include "test_data.h"
 
 static Mat load36H11GreyscaleImage( void )
@@ -31,11 +32,30 @@ TEST( CornerDetectorTest, DefaultConfiguration ) {
   imwrite("/tmp/corner_test_ground_truth.jpg", img );
   CornerArray corners( array.corners() );
 
-  Mat input( load36H11GreyscaleImage() );
+  Mat inputImage( load36H11GreyscaleImage() );
 
   CornerDetector detector;
+  detector.saveDebugImages( true );
 
-  CornerDetectionArray detections( detector.detect( input, corners ) );
+  CornerDetectionArray detections( detector.detect( inputImage, corners ) );
 
   EXPECT_EQ( 0, detections.size() );
+
+  EXPECT_EQ( detector.debugImage(DetectorBase::OriginalImage).size(), inputImage.size() );
+  EXPECT_EQ( detector.debugImage(DetectorBase::BlurredImage).size(), inputImage.size() );
+  EXPECT_EQ( detector.debugImage(DetectorBase::MagnitudeImage).size(), inputImage.size() );
+  EXPECT_EQ( detector.debugImage(DetectorBase::LineSegmentsImage).size(), inputImage.size() );
+  EXPECT_EQ( detector.debugImage(CornerDetector::IntersectionImage).size(), inputImage.size() );
+
+  // EXPECT_EQ( detector.debugImage(TagDetector::QuadImage).size(), inputImage.size() );
+
+  write32FC1("/tmp/corner_original.jpg", detector.debugImage(DetectorBase::OriginalImage) );
+  write32FC1("/tmp/corner_low_pass_image.jpg", detector.debugImage(DetectorBase::BlurredImage) );
+  write32FC1("/tmp/corner_magnitude.jpg", detector.debugImage(DetectorBase::MagnitudeImage) );
+  write32FC3("/tmp/corner_line_segment_image.jpg", detector.debugImage(DetectorBase::LineSegmentsImage) );
+  write32FC3("/tmp/corner_intersections.jpg", detector.debugImage(CornerDetector::IntersectionImage) );
+
+  // write32FC1("/tmp/quad_image.jpg", detector.debugImage(TagDetector::QuadImage) );
+
+exit(0);
 }

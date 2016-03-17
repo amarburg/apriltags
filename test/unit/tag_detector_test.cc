@@ -10,6 +10,7 @@ using namespace cv;
 #include "AprilTags/Tag36h11.h"
 using namespace AprilTags;
 
+#include "../test_common.h"
 #include "test_data.h"
 
 static Mat load36H11GreyscaleImage( void )
@@ -44,12 +45,6 @@ TEST( TagDetectorTest, DefaultConfiguration ) {
   validate_36h11_tags( tags );
 }
 
-static void write32FC1( const string &filename, const Mat &img )
-{
-  Mat out;
-  img.convertTo( out, CV_8UC1, 255. );
-  imwrite( filename, out );
-}
 
 
 TEST( TagDetectorTest, DebugConfiguration ) {
@@ -69,7 +64,7 @@ TEST( TagDetectorTest, DebugConfiguration ) {
   write32FC1("/tmp/original.jpg", detector.debugImage(TagDetector::OriginalImage) );
   write32FC1("/tmp/low_pass_image.jpg", detector.debugImage(TagDetector::BlurredImage) );
   write32FC1("/tmp/magnitude.jpg", detector.debugImage(TagDetector::MagnitudeImage) );
-  write32FC1("/tmp/line_segment_image.jpg", detector.debugImage(TagDetector::LineSegmentsImage) );
+  write32FC3("/tmp/line_segment_image.jpg", detector.debugImage(TagDetector::LineSegmentsImage) );
   write32FC1("/tmp/quad_image.jpg", detector.debugImage(TagDetector::QuadImage) );
 
   validate_36h11_tags( tags );

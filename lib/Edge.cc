@@ -8,8 +8,8 @@ namespace AprilTags {
 float const Edge::minMag = 0.06324555320336758; // 0.004f;  The original code calculated magnitude squared,
 float const Edge::maxEdgeCost = 30.f * float(M_PI) / 180.f;
 int const Edge::WEIGHT_SCALE = 100;
-float const Edge::thetaThresh = 100;
-float const Edge::magThresh = 1200;
+float const Edge::thetaThresh = 2e-5; //100;
+float const Edge::magThresh = 2e-4; //1200;
 
 int Edge::edgeCost(float  theta0, float theta1, float mag1) {
   if (mag1 < minMag)  // mag0 was checked by the main routine so no need to recheck here
@@ -43,14 +43,14 @@ void Edge::calcEdges(float theta0, int x, int y,
     ++nEdges;
   }
 
-  // downward diagonal edge
+  // down-right diagonal edge
   int cost3 = edgeCost(theta0, theta.at<float>(y+1,x+1), mag.at<float>(y+1,x+1));
   if (cost3 >= 0) {
     edges[nEdges].set( cost3, thisPixel, (y+1)*width+x+1 );
     ++nEdges;
   }
 
-  // updward diagonal edge
+  // down-left diagonal edge
   int cost4 = (x == 0) ? -1 : edgeCost(theta0, theta.at<float>(y+1,x-1), mag.at<float>(y+1,x-1));
   if (cost4 >= 0) {
     edges[nEdges].set( cost4, thisPixel, (y+1)*width+x-1 );
@@ -59,7 +59,7 @@ void Edge::calcEdges(float theta0, int x, int y,
 }
 
 void Edge::mergeEdges(std::vector<Edge> &edges, UnionFindSimple &uf,
-		      float tmin[], float tmax[], float mmin[], float mmax[]) {
+		      float tmin[], float tmax[], float mmin[], float mmax[], long int imgArea ) {
   for (size_t i = 0; i < edges.size(); i++) {
     int ida = edges[i].pixelIdxA;
     int idb = edges[i].pixelIdxB;
@@ -94,8 +94,11 @@ void Edge::mergeEdges(std::vector<Edge> &edges, UnionFindSimple &uf,
 
     // merge these two clusters?
     float costab = (tmaxab - tminab);
-    if (costab <= (min(costa, costb) + Edge::thetaThresh/(sza+szb)) &&
-	(mmaxab-mminab) <= min(mmax[ida]-mmin[ida], mmax[idb]-mmin[idb]) + Edge::magThresh/(sza+szb)) {
+
+    float normSize = imgArea / sza+szb;
+
+    if (costab <= (min(costa, costb) + Edge::thetaThresh * normSize ) &&
+	     (mmaxab-mminab) <= min(mmax[ida]-mmin[ida], mmax[idb]-mmin[idb]) + Edge::magThresh * normSize ) {
 
       int idab = uf.connectNodes(ida, idb);
 

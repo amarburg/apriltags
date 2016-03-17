@@ -4,6 +4,11 @@
 #include <cmath>
 #include <vector>
 
+#include <opencv2/core/core.hpp>
+
+#include "AprilTags/GLineSegment2D.h"
+#include "AprilTags/XYWeight.h"
+
 namespace AprilTags {
 
 //! Represents a line fit to a set of pixels whose gradients are similiar.
@@ -13,6 +18,10 @@ public:
 
   static int const minimumSegmentSize = 4; //!< Minimum number of pixels in a segment before we'll fit a line to it.
   static float const minimumLineLength; //!< In pixels. Calculated based on minimum plausible decoding size for Tag9 family.
+
+  cv::Point2f one( void ) const { return cv::Point2f( x0, y0 ); }
+  cv::Point2f two( void ) const { return cv::Point2f( x1, y1 ); }
+
 
   float getX0() const { return x0; }
   void setX0(float newValue) { x0 = newValue; }
@@ -42,6 +51,15 @@ public:
   int getId() const { return segmentId; }
 
   std::vector<Segment*> children;
+
+  static void ExtractSegment(
+    const GLineSegment2D& gseg,
+    const float& length,
+    const std::vector<XYWeight>& points,
+    const cv::Mat& fimTheta,
+    const cv::Mat& fimMag,
+    Segment& seg
+  );
 
 private:
   float x0, y0, x1, y1;
