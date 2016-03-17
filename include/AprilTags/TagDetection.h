@@ -3,7 +3,7 @@
 
 #include <Eigen/Dense>
 
-#include "opencv2/opencv.hpp"
+#include <opencv2/core/core.hpp>
 
 #include <utility>
 #include <vector>

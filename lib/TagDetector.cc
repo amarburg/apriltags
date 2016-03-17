@@ -7,6 +7,8 @@
 
 #include <Eigen/Dense>
 
+#include <opencv2/imgproc/imgproc.hpp>
+
 #include "AprilTags/Edge.h"
 #include "AprilTags/FloatImage.h"
 #include "AprilTags/Gaussian.h"

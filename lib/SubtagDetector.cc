@@ -1,8 +1,11 @@
 
+#include "AprilTags/SubtagDetector.h"
+
+#include <opencv2/imgproc/imgproc.hpp>
+
 #include <algorithm>
 using namespace std;
 
-#include "AprilTags/SubtagDetector.h"
 #include "AprilTags/Utils.h"
 
 namespace AprilTags {
@@ -51,7 +54,7 @@ namespace AprilTags {
     std::transform( corners.begin(), corners.end(),
                     back_inserter<vector< Point2f > >(refinedLocations),
                     CornerDetection::InImageTx );
-    cornerSubPix( blurredImage, refinedLocations, subPixSearchWindow,  Size(-1,-1), TermCriteria() );
+    cornerSubPix( blurredImage, refinedLocations, subPixSearchWindow,  Size(-1,-1), TermCriteria( TermCriteria::EPS + TermCriteria::COUNT, 30, 1e-6 ) );
 
     assert( refinedLocations.size() == corners.size() );
     for( unsigned int i = 0; i < corners.size(); ++i ) {

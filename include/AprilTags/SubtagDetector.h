@@ -1,10 +1,8 @@
-
-
 #ifndef __APRILTAGS_SUBTAG_DETECTOR__
 #define __APRILTAGS_SUBTAG_DETECTOR__
 
 #include <vector>
-#include <opencv2/core.hpp>
+#include <opencv2/core/core.hpp>
 
 #include "AprilTags/CornerDetection.h"
 #include "AprilTags/TagDetection.h"

@@ -1,7 +1,7 @@
 #ifndef __UTILS_H__
 #define __UTILS_H__
 
-#include <opencv2/core.hpp>
+#include <opencv2/core/core.hpp>
 
 #include "AprilTags/TagDetection.h"
 

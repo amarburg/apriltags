@@ -1,7 +1,7 @@
 #ifndef __APRILTAGS_SUBTAG_DETECTION_H__
 #define __APRILTAGS_SUBTAG_DETECTION_H__
 
-#include <opencv2/core.hpp>
+#include <opencv2/core/core.hpp>
 
 #include "AprilTags/TagFamily.h"
 #include "AprilTags/Corners.h"

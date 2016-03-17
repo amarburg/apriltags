@@ -1,7 +1,7 @@
 #ifndef __CORNERS_H__
 #define __CORNERS_H__
 
-#include <opencv2/core.hpp>
+#include <opencv2/core/core.hpp>
 
 // FWIW, I think Mat is too big of a hammer for just
 // storing the corners, but it gets the process
@@ -60,10 +60,10 @@ namespace AprilTags {
       * determines the values of the upper four bits.  But it makes it
       * easier to mask out findable and unfindable corner types.
       */
-     cv::Mat makeCornerMat( const Code_t code, int dim, int blackBorder = 1 );
-     cv::Mat makeCornerMat( const TagCodes &family, int which, int blackBorder = 1 );
+     //cv::Mat makeCornerMat( const Code_t code, int dim, int blackBorder = 1, int whiteBorder = 1 );
+     cv::Mat makeCornerMat( const TagCodes &family, int which, int blackBorder = 1, int whiteBorder = 1 );
 
-     cv::Mat drawTagMat( const TagCodes &family, int which, const Size size = Size(0,0) );
+     cv::Mat drawTagMat( const TagCodes &family, int which, const Size size = Size(0,0), int blackBorder = 1, int whiteBorder = 1 );
      cv::Mat drawTagMat( const cv::Mat &mat, const Size size = Size(0,0) );
 
      cv::Mat drawCornerMat( const TagCodes &family, int which, const Size size = Size(0,0) );

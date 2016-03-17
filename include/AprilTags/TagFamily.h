@@ -1,5 +1,5 @@
-#ifndef TAGFAMILY_H
-#define TAGFAMILY_H
+#ifndef __APRILTAGS_TAGFAMILY_H
+#define __APRILTAGS_TAGFAMILY_H
 
 #include <climits>
 #include <cmath>

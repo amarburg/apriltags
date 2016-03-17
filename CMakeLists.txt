@@ -14,7 +14,15 @@ include_directories(${EIGEN_INCLUDE_DIR})
 
 ## The "imgcodecs" package appears in OpenCV 3.0
 # Not sure how to do a version check here and request "highgui" instead...?
-find_package(OpenCV REQUIRED core imgcodecs imgproc calib3d )
+find_package(OpenCV REQUIRED core imgproc calib3d )
+if( OpenCV_VERSION_MAJOR VERSION_LESS "3.0.0" )
+  find_package(OpenCV REQUIRED highgui )
+else()
+  find_package(OpenCV REQUIRED imgcodecs )
+endif()
+
+
+
 include_directories(${OpenCV_INCLUDE_DIRS})
 
 include_directories(include)

@@ -4,6 +4,7 @@ include_directories( ${GTEST_INCLUDE_DIRS}
                      ${CMAKE_SOURCE_DIR}/test/data )
 
 file(GLOB UNIT_TEST_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.cc)
+
 add_executable( apriltags_unit_test
                ${UNIT_TEST_FILES} )
 

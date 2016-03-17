@@ -5,10 +5,10 @@
 #include <vector>
 
 #include <Eigen/Dense>
+#include <opencv2/core/core.hpp>
 
 #include "Homography33.h"
 
-#include <opencv2/core.hpp>
 
 namespace AprilTags {
 
@@ -61,7 +61,7 @@ public:
   static void search(//const cv::Mat &fImage,
                      std::vector<Segment*>& path,
                      Segment& parent,
-                     int depth, 
+                     int depth,
                      std::vector<Quad>& quads,
                      const cv::Point2f& opticalCenter);
 
