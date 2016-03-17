@@ -24,7 +24,7 @@ TEST( TagArrayTest, Add ) {
   EXPECT_EQ( 3, array.add( cv::Point2f( 4,4 ), WhichTag, M_PI/2.0 ) );
 
   Mat img;
-  array.draw( img, cv::Size( 100, 100 ));
+  array.draw( img, cv::Size( 200, 200 ));
 
   imwrite( "/tmp/tag_array_test.png", img);
 }
@@ -33,12 +33,13 @@ TEST( TagArrayTest, ConvertToCorners ) {
   TagArray array( whichCode );
 
   EXPECT_EQ( 1, array.add( cv::Point2f( 0, 0 ), WhichTag ) );
-  EXPECT_EQ( 2, array.add( cv::Point2f( 4,4 ), WhichTag, M_PI/2.0 ) );
+  EXPECT_EQ( 2, array.add( cv::Point2f( 2, 2 ), WhichTag, M_PI/4.0 ) );
+  EXPECT_EQ( 3, array.add( cv::Point2f( 4,4 ), WhichTag, M_PI/2.0 ) );
 
   CornerArray corners( array.corners() );
 
   Mat img;
-  corners.draw( img, cv::Size( 100,100 ));
+  corners.draw( img, cv::Size( 200,200 ));
   imwrite( "/tmp/corner_array_test.png", img );
 }
 

@@ -17,23 +17,25 @@ namespace AprilTags {
 
 		struct ArrayElement {
 		public:
-			ArrayElement( const cv::Point2f &center_, unsigned int arrayId_, cv::Point2i idx_, unsigned char type  )
+			ArrayElement( const cv::Point2f &center_, unsigned int arrayId_, cv::Point2i idx_, unsigned char type, float rotation  )
 				: center( center_ ),
 				id( arrayId_ ),
 				idx( idx_ ),
-				cornerType( type )
+				cornerType( type ),
+				rotation( rotation )
 			{;}
 
 			cv::Point2f center;
 			unsigned int id;
 			cv::Point2i idx;
 			unsigned char cornerType;
+			float rotation;
 		};
 
 		CornerArray( );
 
 		unsigned int size( void ) const { return _elements.size(); }
-		unsigned int add( const cv::Point2f &center_, unsigned int arrayId_, cv::Point2i idx_, unsigned char type );
+		unsigned int add( const cv::Point2f &center_, unsigned int arrayId_, cv::Point2i idx_, unsigned char type, float rotation );
 
 		// bitSize determines the size of one tag, with black border in pixels.
 		// Total image size is calculated from this unit of measure.

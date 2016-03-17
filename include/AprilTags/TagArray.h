@@ -31,6 +31,9 @@ namespace AprilTags {
 		TagArray( const TagCodes &code );
 
 		unsigned int size( void ) const { return _elements.size(); }
+
+		// n.b. Rotation is defined positive in the CW direction.
+		// This is consistent with the X-right, Y-down axes found in most images.
 		unsigned int add( const cv::Point2f &center, Code_t code, float rot = 0 );
 
 		// bitSize determines the size of one tag, with black border in pixels.

@@ -16,9 +16,9 @@ namespace AprilTags {
 CornerArray::CornerArray(  )
 {;}
 
-unsigned int CornerArray::add( const cv::Point2f &center, unsigned int arrayId, cv::Point2i idx, unsigned char type )
+unsigned int CornerArray::add( const cv::Point2f &center, unsigned int arrayId, cv::Point2i idx, unsigned char type, float rotation )
 {
-	_elements.push_back( ArrayElement(center, arrayId, idx, type) );
+	_elements.push_back( ArrayElement(center, arrayId, idx, type, rotation) );
 	return _elements.size();
  }
 
@@ -39,8 +39,8 @@ Mat CornerArray::draw(  cv::Mat &mat, const Size tagSize )
 
 	const float radius = (tagSize.width + tagSize.height) * 0.5 * 0.05;
 
-	const cv::Scalar backgroundColor( 255 );
-	mat.create( imgSize, CV_8UC1 );
+	const cv::Scalar backgroundColor( 255,255,255 );
+	mat.create( imgSize, CV_8UC3 );
 	mat = backgroundColor;												// Fill with white
 
 	// Draw each element in turn
@@ -48,17 +48,20 @@ Mat CornerArray::draw(  cv::Mat &mat, const Size tagSize )
 		Point2f cornerCenter((itr->center.x-bb.x) * tagSize.width, (itr->center.y-bb.y) * tagSize.height );
 
 		// Draw subdots (this is how the corners are ordered: UL, UR, LL, LR )
-		const float rots[4] = {3*M_PI/4, M_PI/4, 5*M_PI/4, 7*M_PI/4 };
+		const float rots[4] = { 5*M_PI/4, 7*M_PI/4, 3*M_PI/4, M_PI/4 };
 		for( unsigned int i = 0; i < 4; ++i ) {
-			cv::circle( mat, cornerCenter + radius * Point2f( cos( rots[i] + itr->rotation ), sin( rots[i] + itr->rotation ) ),
-									radius,
+			cv::circle( mat, cornerCenter + radius * Point2f( cos( rots[i]+itr->rotation  ), sin( rots[i] + itr->rotation  ) ),
+									radius/1.3,
 									cv::Scalar( 0,0,0 ),
-									itr->type & (1 << i) ? -1 : radius/15 );
+									itr->cornerType & (1 << i) ? radius/10 : -1 );
 		}
+
+		cv::Scalar color( 255, 0, 0); // Blue for more corners
+		if( itr->idx.x == 0 && itr->idx.y == 0 )	color = cv::Scalar( 0,0,255); // Red for (0,0)
 
 		// And overlay a master circle
 		cv::circle( mat, cornerCenter,
-								radius, cv::Scalar( 0,255,0), radius/10 );
+								radius, color, radius/10 );
 
 	}
 
