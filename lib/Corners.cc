@@ -1,6 +1,7 @@
 
 #include "AprilTags/Corners.h"
 
+#include <opencv2/imgproc/imgproc.hpp>
 using namespace cv;
 
 namespace AprilTags {
@@ -75,9 +76,9 @@ static unsigned char CornerCodeLUT[] = {
     0x20, 0x80, 0x10, 0x40, 0x10, 0x40, 0x40, 0x00
 };
 
-cv::Mat makeCornerMat( const TagCodes &family, int which, int blackBorder )
+cv::Mat makeCornerMat( const TagCodes &family, int which, int blackBorder, int whiteBorder )
 {
-  Mat tag( makeTagMat(family, which, blackBorder, 1) );
+  Mat tag( makeTagMat(family, which, blackBorder, whiteBorder) );
 
   int edge = tag.rows - 1;
 
@@ -101,9 +102,9 @@ cv::Mat makeCornerMat( const TagCodes &family, int which, int blackBorder )
 
 //=== Convenience drawing functions ====
 
-cv::Mat drawTagMat( const TagCodes &family, int which, const Size size )
+cv::Mat drawTagMat( const TagCodes &family, int which, const Size size, int whiteBorder, int blackBorder )
 {
-  return drawTagMat( makeTagMat( family, which ), size );
+  return drawTagMat( makeTagMat( family, which, whiteBorder, blackBorder ), size );
 }
 
 
