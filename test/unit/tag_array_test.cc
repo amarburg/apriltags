@@ -7,6 +7,7 @@
 using namespace cv;
 
 #include "AprilTags/TagArray.h"
+#include "AprilTags/CornerArray.h"
 using namespace AprilTags;
 
 #include "test_data.h"
@@ -27,6 +28,21 @@ TEST( TagArrayTest, Add ) {
 
   imwrite( "/tmp/tag_array_test.png", img);
 }
+
+TEST( TagArrayTest, ConvertToCorners ) {
+  TagArray array( whichCode );
+
+  EXPECT_EQ( 1, array.add( cv::Point2f( 0, 0 ), WhichTag ) );
+  EXPECT_EQ( 2, array.add( cv::Point2f( 4,4 ), WhichTag, M_PI/2.0 ) );
+
+  CornerArray corners( array.corners() );
+
+  Mat img;
+  corners.draw( img, cv::Size( 100,100 ));
+  imwrite( "/tmp/corner_array_test.png", img );
+}
+
+
 //
 //   const int edge = whichCode.dim;
 //
