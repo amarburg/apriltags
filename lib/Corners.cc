@@ -77,6 +77,13 @@ static unsigned char CornerCodeLUT[] = {
     0x20, 0x80, 0x10, 0x40, 0x10, 0x40, 0x40, 0x00
 };
 
+unsigned char cornerLUT( unsigned char corner )
+{
+  unsigned char upper = CornerCodeLUT[ corner & 0x0F ];
+  return (upper & 0xF0) | (corner & 0x0F);
+}
+
+
 cv::Mat makeCornerMat( const TagCodes &family, int which, int blackBorder, int whiteBorder )
 {
   Mat tag( makeTagMat(family, which, blackBorder, whiteBorder) );
@@ -94,7 +101,7 @@ cv::Mat makeCornerMat( const TagCodes &family, int which, int blackBorder, int w
       if( tag.at<unsigned char>(p.y+1, p.x) )    bits |= 0x04;
       if( tag.at<unsigned char>(p.y+1, p.x+1) )  bits |= 0x08;
 
-      corners.at<unsigned char>(p) = bits | (CornerCodeLUT[bits] & 0xF0);
+      corners.at<unsigned char>(p) = cornerLUT( bits );
     }
   }
 

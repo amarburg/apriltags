@@ -2,6 +2,8 @@
 #include <iostream>
 
 #include "AprilTags/CornerDetector.h"
+#include "AprilTags/BinaryClassifier.h"
+
 
 #include <opencv2/highgui/highgui.hpp>
 
@@ -12,6 +14,7 @@ using cv::Mat;
 
 //=========================================================
 
+// TODO.  Merge with GLineSegment2D
 struct LineSegment {
 
 	LineSegment( const Segment &seg )
@@ -44,22 +47,15 @@ public:
 		basis[0] = basis0;
 		basis[1] = basis1;
 
-		corner = sample( img, neighborhood );
+		sample( img, neighborhood );
 	}
 
 	float meanAngle( void ) const
-{ return atan2( sin(basis[0])+sin(basis[1]), cos(basis[0])+cos(basis[1]));}
+	{ return atan2( sin(basis[0])+sin(basis[1]), cos(basis[0])+cos(basis[1]));}
 
-	unsigned char sample( const Mat &img, int neighborhood )
+	void sample( const Mat &img, int neighborhood )
 	{
-		unsigned char type = 0;
-
 		const float radius = 5;
-		// First decide on threshold for intersection
-		Mat roi( img, cv::Rect( center.x-(neighborhood-1)/2, center.y-(neighborhood-1)/2, neighborhood, neighborhood ) );
-		Mat prod;
-		cv::GaussianBlur( roi, prod, cv::Size(neighborhood,neighborhood), radius );
-		float mean = cv::mean( prod )[0];
 
 		float theta = meanAngle();
 		// theta defines the mean angle between the x and y axes
@@ -68,16 +64,26 @@ public:
 		for( unsigned int i = 0; i < 4; ++i ) {
 			cv::Point2f pt( center + radius * cv::Point2f( cos( angles[i]), sin(angles[i]) ) );
 			Mat ptRoi( img, cv::Rect( pt.x-1, pt.y-1, 3, 3 ));
-			if( cv::mean( ptRoi )[0] > mean )
-				type |= (1 << i);
+
+			samples[i] = cv::mean( ptRoi )[0];
+		}
+	}
+
+	void identify( const BinaryClassifier &classifier )
+	{
+		unsigned char bits = 0;
+		for( unsigned int i = 0; i < 4; ++i ) {
+			if( classifier.classify( samples[i] ) == 1 )
+				bits |= (1 << i);
 		}
 
-		return type;
+		corner = Corners::cornerLUT( bits );
 	}
 
 
 	cv::Point2f center;
 	float basis[2];
+	float samples[4];
 
 	unsigned char corner;
 };
@@ -218,11 +224,43 @@ CornerDetectionArray CornerDetector::detect( const Mat &inImage, const CornerArr
     }
   }
 
-	std::cout << intersections.size() << " intersections" << std::endl;
+	// Use samples from all intersections to train 2-class GMM
+	BinaryClassifier classifier( 0.8 );
+	classifier.startTraining();
 
+	// And while we're at it, build the Delaunay to compute local triads
+	cv::Subdiv2D delaunay( cv::Rect(0,0, width,height));
+
+	for( auto const &intersection : intersections ) {
+		for( int i = 0; i < 4; ++i )
+			classifier.trainingPoint( intersection.samples[i] );
+
+		delaunay.insert( intersection.center );
+	}
+
+	classifier.endTraining();
+
+	for( auto &intersection : intersections ) {
+		intersection.identify( classifier );
+	}
+
+	std::cout << intersections.size() << " intersections" << std::endl;
 	if( _saveDebugImages ) saveIntersectionImage( intersections );
 
-	// Classify each corner by sampling the four quadrants around it
+
+
+	// Push all intersections into the delaunay transformation
+	for( auto const &intersection : intersections ) {
+		delaunay.insert( intersection.center );
+	}
+
+	vector< cv::Vec6f > triangles;
+	delaunay.getTriangleList( triangles );
+	std::cout << triangles.size() << " triangles" << std::endl;
+
+	// Need to map from Delaunay triangles back to triplets of intersections
+
+
 
 	return output;
 }

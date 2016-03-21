@@ -69,6 +69,7 @@ namespace AprilTags {
      cv::Mat drawCornerMat( const TagCodes &family, int which, const Size size = Size(0,0) );
      cv::Mat drawCornerMat( const cv::Mat &corners, const Size size = Size(0,0) );
 
+      unsigned char cornerLUT( unsigned char corner );
   };
 
 
