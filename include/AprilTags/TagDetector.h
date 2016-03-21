@@ -7,15 +7,17 @@
 
 #include "AprilTags/TagDetection.h"
 #include "AprilTags/TagFamily.h"
-#include "AprilTags/FloatImage.h"
-#include "AprilTags/GLineSegment2D.h"
-#include "AprilTags/Quad.h"
-#include "AprilTags/XYWeight.h"
-#include "AprilTags/Segment.h"
+// #include "AprilTags/FloatImage.h"
+
 
 namespace AprilTags {
 
   using cv::Mat;
+
+  class Segment;
+  class GLineSegment2D;
+  class Quad;
+  struct XYWeight;
 
   // Default parameter values
   const int DefaultAdaptiveThresholdRadius = 9;

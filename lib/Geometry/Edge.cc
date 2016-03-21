@@ -1,7 +1,7 @@
-#include "AprilTags/Edge.h"
-#include "AprilTags/FloatImage.h"
-#include "AprilTags/MathUtil.h"
-#include "AprilTags/UnionFindSimple.h"
+#include "Edge.h"
+#include "Utils/FloatImage.h"
+#include "Utils/MathUtil.h"
+#include "Utils/UnionFindSimple.h"
 
 namespace AprilTags {
 

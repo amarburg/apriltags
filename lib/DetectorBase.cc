@@ -4,7 +4,7 @@
 #include <iostream>
 #include <map>
 
-#include "AprilTags/UnionFindSimple.h"
+#include "Utils/UnionFindSimple.h"
 
 namespace AprilTags {
 

@@ -22,6 +22,12 @@ unsigned int CornerArray::add( const cv::Point2f &center, unsigned int arrayId, 
 	return _elements.size();
  }
 
+ unsigned int CornerArray::add( const cv::Point2f &center, unsigned char type, float rotation )
+ {
+ 	_elements.push_back( ArrayElement(center, 0, Point2i(0,0), type, rotation) );
+ 	return _elements.size();
+  }
+
 Mat CornerArray::draw(  cv::Mat &mat, const Size tagSize )
 {
 	if( size() == 0 || tagSize.area() == 0 ) return mat;

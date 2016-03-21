@@ -5,8 +5,8 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
-#include "AprilTags/Edge.h"
-#include "AprilTags/Segment.h"
+#include "Geometry/Edge.h"
+#include "Geometry/Segment.h"
 
 namespace AprilTags {
 

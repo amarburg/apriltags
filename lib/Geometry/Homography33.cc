@@ -7,7 +7,7 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
 
-#include "AprilTags/Homography33.h"
+#include "Homography33.h"
 
 Homography33::Homography33(const Eigen::Vector2f &opticalCenter)
   : cxy(opticalCenter.x(), opticalCenter.y()), fA(), H(), valid(false) {

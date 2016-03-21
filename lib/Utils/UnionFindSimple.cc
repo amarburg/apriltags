@@ -1,4 +1,4 @@
-#include "AprilTags/UnionFindSimple.h"
+#include "UnionFindSimple.h"
 #include <iostream>
 
 namespace AprilTags {

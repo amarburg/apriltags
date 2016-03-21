@@ -1,6 +1,6 @@
 
 
-#include "AprilTags/BinaryClassifier.h"
+#include "BinaryClassifier.h"
 
 #include <math.h>
 

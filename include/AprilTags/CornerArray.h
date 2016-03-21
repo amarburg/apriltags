@@ -36,6 +36,8 @@ namespace AprilTags {
 
 		unsigned int size( void ) const { return _elements.size(); }
 		unsigned int add( const cv::Point2f &center_, unsigned int arrayId_, cv::Point2i idx_, unsigned char type, float rotation );
+		unsigned int add( const cv::Point2f &center_, unsigned char type, float rotation );
+
 
 		// bitSize determines the size of one tag, with black border in pixels.
 		// Total image size is calculated from this unit of measure.

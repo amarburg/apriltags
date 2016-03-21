@@ -2,11 +2,14 @@
 #pragma once
 
 #include <vector>
+#include <memory>
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
 #include "AprilTags/DetectorBase.h"
 #include "AprilTags/CornerArray.h"
+
+#include "CornerDetector/CornerDetectorTypes.h"
 
 namespace AprilTags {
 
@@ -28,7 +31,7 @@ namespace AprilTags {
 
 		enum  CornerDebugImages_t {
 			IntersectionImage = BASE_DEBUG_IMAGES,
-			TripletImage = BASE_DEBUG_IMAGES+1,
+			TriangleImage = BASE_DEBUG_IMAGES+1,
 			CORNER_DEBUG_IMAGES = BASE_DEBUG_IMAGES+2
 		};
 
@@ -39,10 +42,11 @@ namespace AprilTags {
 
 	protected:
 
-		void saveIntersectionImage( const vector< Intersection > &intersections );
-		void saveTripletImage( const vector< Triplet > &triplets );
+		void saveIntersectionImage( const std::vector< std::shared_ptr<Intersection> > &intersections );
+		void saveTriangleImage( const std::vector< std::shared_ptr<Triangle> > &triangles );
 
 
 	};
+
 
 }

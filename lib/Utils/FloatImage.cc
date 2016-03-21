@@ -1,5 +1,5 @@
-#include "AprilTags/FloatImage.h"
-#include "AprilTags/Gaussian.h"
+#include "FloatImage.h"
+#include "Gaussian.h"
 #include <iostream>
 
 namespace AprilTags {

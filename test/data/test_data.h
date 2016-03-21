@@ -16,7 +16,7 @@
 #define TEST_36H11_OBLIQUE_GREYSCALE_JPG  (TEST_DATA_DIR "/test_36h11_oblique_greyscale.jpg")
 
 #define TEST_36H11_CLOSE_JPG            (TEST_DATA_DIR "/test_36h11_close.jpg")
-#define TEST_36H11_CLOSE_OBLIQUE_JPG            (TEST_DATA_DIR "/test_36h11_close_oblique.jpg")
+#define TEST_36H11_CLOSE_OBLIQUE_JPG            (TEST_DATA_DIR "/test_36h11_close_oblique_fisheye.jpg")
 
 
 
@@ -127,14 +127,16 @@ namespace AprilTags {
     };
 
     const unsigned char t36h11Array[] =
-        {  14,15,16,17,18,19,20,21,22,23,
-            38,39,40,41,42,43,44,45,46,47,
-            62,63,64,65,66,67,68,69,70,71,
-            86,87,88,89,90,91,92,93,94,95,
-            110,111,112,113,114,115,116,117,118,119,
-            134,135,136,137,138,139,140,141,142,143,
-            158,159,160,161,162,163,164,165,166,167,
-            182,183,184,185,186,187,188,189,190,191, };
+        { 14,15,16,17,18,19,20,21,22,23,
+          38,39,40,41,42,43,44,45,46,47,
+          62,63,64,65,66,67,68,69,70,71,
+          86,87,88,89,90,91,92,93,94,95,
+          110,111,112,113,114,115,116,117,118,119,
+          134,135,136,137,138,139,140,141,142,143,
+          158,159,160,161,162,163,164,165,166,167,
+          182,183,184,185,186,187,188,189,190,191
+             };
+
 
     const unsigned int t36h11ArrayWidth = 10;
     const unsigned int t36h11ArrayHeight = 8;

@@ -7,7 +7,7 @@
 #include <utility>
 
 #include "GLine2D.h"
-#include "XYWeight.h"
+#include "Utils/XYWeight.h"
 
 namespace AprilTags {
 

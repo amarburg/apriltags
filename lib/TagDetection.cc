@@ -3,7 +3,7 @@
 #include <opencv2/calib3d/calib3d.hpp>
 
 #include "AprilTags/TagDetection.h"
-#include "AprilTags/MathUtil.h"
+#include "Utils/MathUtil.h"
 
 #ifdef PLATFORM_APERIOS
 //missing/broken isnan

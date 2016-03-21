@@ -1,4 +1,4 @@
-#include "AprilTags/MathUtil.h"
+#include "MathUtil.h"
 
 namespace AprilTags {
 

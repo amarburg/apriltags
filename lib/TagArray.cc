@@ -37,8 +37,8 @@ CornerArray TagArray::corners( void ) const
 				Point2f xyloc( (float)p.x/(corners.cols-1) - 0.5, (float)p.y/(corners.rows-1) - 0.5 );
 
 				float c = cos( elem.rotation ), s = sin( elem.rotation );
-				Point2f rotloc(  c*xyloc.x + -s*xyloc.y + elem.center.x,
-												 s*xyloc.x + c*xyloc.y + elem.center.y );
+				Point2f rotloc(  c*xyloc.x + s*xyloc.y + elem.center.x,
+												 -s*xyloc.x + c*xyloc.y + elem.center.y );
 
 				// std::cout << rotloc << " " << p << std::endl;
 				out.add( rotloc, i, p, corners.at<unsigned char>(p), elem.rotation );
@@ -74,8 +74,8 @@ Mat TagArray::draw(  cv::Mat &mat, const Size tagSize )
 		Mat elem( Corners::drawTagMat( _code, itr->code, tagSize, 1, 0 ) );
 
 		// Create an affine transform
-		Mat trans = (Mat_<double>(3,3) << cos( itr->rotation ), -sin( itr->rotation), (itr->center.x-bb.x)*tagSize.width,
-																      sin( itr->rotation ),  cos( itr->rotation), (itr->center.y-bb.y)*tagSize.height,
+		Mat trans = (Mat_<double>(3,3) << cos( itr->rotation ), sin( itr->rotation), (itr->center.x-bb.x)*tagSize.width,
+																      -sin( itr->rotation ),  cos( itr->rotation), (itr->center.y-bb.y)*tagSize.height,
 																			0,0,1);
 		Mat offset = (Mat_<double>(3,3) << 1,0, -0.5*tagSize.width,
 																       0,1, -0.5*tagSize.height,
@@ -102,8 +102,8 @@ Rect_<float> TagArray::boundingBox( void ) const
 	for( std::vector< ArrayElement >::const_iterator itr = _elements.begin(); itr != _elements.end(); ++itr  ) {
 		float c = cos( itr->rotation ), s = sin( itr->rotation );
 		for( unsigned int i = 0; i < 4; ++i ) {
-			corners.push_back( cv::Point2f( itr->center.x + (  cor[i].x * c - cor[i].y * s),
-	  																	itr->center.y + (  cor[i].x * s + cor[i].y * c) ));
+			corners.push_back( cv::Point2f( itr->center.x + (  cor[i].x * c  + cor[i].y * s),
+	  																	itr->center.y + (  -cor[i].x * s + cor[i].y * c) ));
 		}
 
 	}

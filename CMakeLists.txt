@@ -24,11 +24,10 @@ endif()
 
 
 include_directories(${OpenCV_INCLUDE_DIRS})
-
-include_directories(include)
+include_directories(include lib)
 
 # libapriltags
-file(GLOB SOURCE_FILES "lib/*.cc")
+file(GLOB SOURCE_FILES "lib/*/*.cc" "lib/*.cc" )
 add_library(apriltags ${SOURCE_FILES})
 
 target_link_libraries(apriltags ${OpenCV_LIBS}) #-pg) #-fopenmp)
@@ -43,7 +42,8 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Werror -ggdb")
 
 
 file(GLOB HEADER_FILES ${CMAKE_SOURCE_DIR}/include/Apriltags/*)
-install(PROGRAMS ${HEADER_FILES} DESTINATION include/AprilTags COMPONENT applications)
+# TODO:  This breaks with subdirectoeies in include/Apriltags
+# install(PROGRAMS ${HEADER_FILES} DESTINATION include/AprilTags COMPONENT applications)
 install(TARGETS apriltags
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
