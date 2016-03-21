@@ -6,8 +6,8 @@
 
 #include <opencv2/core/core.hpp>
 
-#include "AprilTags/GLineSegment2D.h"
-#include "AprilTags/XYWeight.h"
+#include "GLineSegment2D.h"
+#include "Utils/XYWeight.h"
 
 namespace AprilTags {
 

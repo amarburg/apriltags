@@ -42,3 +42,16 @@ TEST( TagArrayTest, ConvertToCorners ) {
   corners.draw( img, cv::Size( 200,200 ));
   imwrite( "/tmp/corner_array_test.png", img );
 }
+
+TEST( CornerArrayTest, SpinMatchTest )
+{
+  TagArray array( whichCode );
+
+  EXPECT_EQ( 1, array.add( cv::Point2f( 0, 0 ), WhichTag ) );
+
+  CornerArray corners( array.corners() );
+
+  std::vector< std::pair< int, int > > results( corners.spinMatch( 0x85 ));
+
+  EXPECT_EQ( results.size(), 3 );
+}

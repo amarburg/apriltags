@@ -9,18 +9,24 @@
 
 #include <opencv2/imgproc/imgproc.hpp>
 
-#include "AprilTags/Edge.h"
-#include "AprilTags/FloatImage.h"
-#include "AprilTags/Gaussian.h"
-#include "AprilTags/GrayModel.h"
-#include "AprilTags/GLine2D.h"
-#include "AprilTags/Gridder.h"
-#include "AprilTags/Homography33.h"
-#include "AprilTags/MathUtil.h"
-#include "AprilTags/Quad.h"
-#include "AprilTags/TagFamily.h"
-#include "AprilTags/UnionFindSimple.h"
+#include "Geometry/GLine2D.h"
+#include "Geometry/Edge.h"
+#include "Geometry/Quad.h"
 
+#include "Utils/FloatImage.h"
+// #include "AprilTags/Gaussian.h"
+#include "Utils/GrayModel.h"
+#include "Utils/Gridder.h"
+#include "Utils/MathUtil.h"
+#include "Utils/UnionFindSimple.h"
+#include "Utils/XYWeight.h"
+
+#include "Geometry/GLineSegment2D.h"
+#include "Geometry/Homography33.h"
+#include "Geometry/Quad.h"
+#include "Geometry/Segment.h"
+
+#include "AprilTags/TagFamily.h"
 #include "AprilTags/TagDetector.h"
 
 

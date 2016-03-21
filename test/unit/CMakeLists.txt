@@ -3,7 +3,12 @@ find_package( GTest REQUIRED )
 include_directories( ${GTEST_INCLUDE_DIRS}
                      ${CMAKE_SOURCE_DIR}/test/data )
 
-file(GLOB UNIT_TEST_FILES ${CMAKE_CURRENT_SOURCE_DIR}/*.cc)
+set( UNIT_TEST_FILES
+    corner_detector_test.cc
+    corners_test.cc
+    tag_array_test.cc )
+    # subtag_detector_test.cc
+    # tag_detector_test.cc )
 
 add_executable( apriltags_unit_test
                ${UNIT_TEST_FILES} )

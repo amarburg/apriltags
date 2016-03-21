@@ -53,7 +53,7 @@ namespace AprilTags {
       *
       *   2 | 3     .-> +X
       *   --+--     |
-      *   0 | 1     v +Y
+      *   1 | 0     v +Y
       *
       * As either BLACK or WHITE.  By definition, there are only
       * 2^4 = 16 possible combinations and the value of the lower four bits
@@ -69,6 +69,17 @@ namespace AprilTags {
      cv::Mat drawCornerMat( const TagCodes &family, int which, const Size size = Size(0,0) );
      cv::Mat drawCornerMat( const cv::Mat &corners, const Size size = Size(0,0) );
 
+     unsigned char rotate( unsigned char a, int count );
+
+      // SpinMatch returns the number of positive (CCW in the image) 90 deg
+      // rotations which need to be applied for _a_ for it to match _b_
+      //
+      // Or -1 if they do not match.
+     int spinMatch( unsigned char a, unsigned char b );
+
+     unsigned char cornerLUT( unsigned char corner );
+
+     static const float angles[4] = { M_PI/4, 3*M_PI/4, 5*M_PI/4, 7*M_PI/4 };
   };
 
 

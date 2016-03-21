@@ -5,6 +5,8 @@ using namespace std;
 
 #include "AprilTags/CornerArray.h"
 
+#include "Utils/range.hpp"
+#include "Utils/MathUtil.h"
 
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -12,6 +14,7 @@ using namespace std;
 namespace AprilTags {
 
 	using namespace cv;
+	using util::lang::range;
 
 CornerArray::CornerArray(  )
 {;}
@@ -22,9 +25,46 @@ unsigned int CornerArray::add( const cv::Point2f &center, unsigned int arrayId, 
 	return _elements.size();
  }
 
-Mat CornerArray::draw(  cv::Mat &mat, const Size tagSize )
+unsigned int CornerArray::add( const cv::Point2f &center, unsigned char type, float rotation )
 {
-	if( size() == 0 || tagSize.area() == 0 ) return mat;
+	_elements.push_back( ArrayElement(center, 0, Point2i(0,0), type, rotation) );
+	return _elements.size();
+}
+
+std::vector< std::pair< int, int > > CornerArray::spinMatch( unsigned char corner ) const
+{
+	std::vector< std::pair< int, int > > output;
+
+	for( auto i : range(0ul,_elements.size()) ) {
+		const int rot = Corners::spinMatch( corner, _elements[i].cornerType );
+		if( rot >= 0 )
+			output.push_back( std::make_pair( i, rot ));
+	}
+
+	return output;
+}
+
+std::vector< std::pair< int, int > > CornerArray::spinMatch( unsigned char corner, const cv::Point2f &origin, float radius ) const
+{
+	const float r2 = radius*radius;
+	std::vector< std::pair< int, int > > output;
+
+	for( auto i : range(0ul,_elements.size()) ) {
+		if( MathUtil::distance2Dsqr( _elements[i].center, origin ) > r2 ) continue;
+
+		const int rot = Corners::spinMatch( corner, _elements[i].cornerType );
+		if( rot >= 0 )
+			output.push_back( std::make_pair( i, rot ));
+	}
+
+	return output;
+}
+
+
+
+CornerArrayImage CornerArray::draw( cv::Mat &mat, const Size tagSize ) const
+{
+	if( size() == 0 || tagSize.area() == 0 ) return CornerArrayImage();
 
 	// Bounding box is in tag-normalized units
 	Rect_<float> bb( boundingBox() );
@@ -47,10 +87,8 @@ Mat CornerArray::draw(  cv::Mat &mat, const Size tagSize )
 	for( std::vector< ArrayElement >::const_iterator itr = _elements.begin(); itr != _elements.end(); ++itr  ) {
 		Point2f cornerCenter((itr->center.x-bb.x) * tagSize.width, (itr->center.y-bb.y) * tagSize.height );
 
-		// Draw subdots (this is how the corners are ordered: UL, UR, LL, LR )
-		const float rots[4] = { 5*M_PI/4, 7*M_PI/4, 3*M_PI/4, M_PI/4 };
 		for( unsigned int i = 0; i < 4; ++i ) {
-			cv::circle( mat, cornerCenter + radius * Point2f( cos( rots[i]+itr->rotation  ), sin( rots[i] + itr->rotation  ) ),
+			cv::circle( mat, cornerCenter + radius * Point2f( cos( Corners::angles[i]+itr->rotation  ), sin( Corners::angles[i] + itr->rotation  ) ),
 									radius/1.3,
 									cv::Scalar( 0,0,0 ),
 									itr->cornerType & (1 << i) ? radius/10 : -1 );
@@ -65,7 +103,7 @@ Mat CornerArray::draw(  cv::Mat &mat, const Size tagSize )
 
 	}
 
-	return mat;
+	return CornerArrayImage( mat, bb, tagSize );
 }
 
 

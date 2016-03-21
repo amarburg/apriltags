@@ -5,7 +5,7 @@
 #include <iterator>
 #include <vector>
 
-#include "Segment.h"
+#include "Geometry/Segment.h"
 
 namespace AprilTags {
 
@@ -15,7 +15,7 @@ class Gridder {
   private:
 	Gridder(const Gridder&); //!< don't call
 	Gridder& operator=(const Gridder&); //!< don't call
-	
+
   struct Cell {
     T* object;
     Cell *next;
@@ -43,7 +43,7 @@ class Gridder {
   void gridderInit(float x0Arg, float y0Arg, float x1Arg, float y1Arg, float ppCell) {
     width = (int) ((x1Arg - x0Arg)/ppCell + 1);
     height = (int) ((y1Arg - y0Arg)/ppCell + 1);
-    
+
     x1 = x0Arg + ppCell*width;
     y1 = y0Arg + ppCell*height;
     cells = std::vector< std::vector<Cell*> >(height, std::vector<Cell*>(width,(Cell*)NULL));
@@ -53,7 +53,7 @@ class Gridder {
   int width, height;
   float pixelsPerCell; //pixels per cell
   std::vector< std::vector<Cell*> > cells;
- 
+
 public:
   Gridder(float x0Arg, float y0Arg, float x1Arg, float y1Arg, float ppCell)
     : x0(x0Arg), y0(y0Arg), x1(), y1(), width(), height(), pixelsPerCell(ppCell),
@@ -79,7 +79,7 @@ public:
       // cout << "Gridder placed seg " << o->getId() << " at (" << ix << "," << iy << ")" << endl;
     }
   }
-  
+
   // iterator begin();
   // iterator end();
 
@@ -88,10 +88,10 @@ public:
   public:
     Iterator(Gridder* grid, float x, float y, float range)
       : outer(grid), ix0(), ix1(), iy0(), iy1(), ix(), iy(), c(NULL) { iteratorInit(x,y,range); }
-	  
+
 	  Iterator(const Iterator& it)
 	  : outer(it.outer), ix0(it.ix0), ix1(it.ix1), iy0(it.iy0), iy1(it.iy1), ix(it.ix), iy(it.iy), c(it.c) {}
-	  
+
 	  Iterator& operator=(const Iterator& it) {
 		  outer = it.outer;
 		  ix0 = it.ix0;
@@ -132,7 +132,7 @@ public:
 	  break;
 
         c = outer->cells[iy][ix];
-       
+
 	if (c != NULL)
 	  break;
 	ix++;

@@ -1,4 +1,4 @@
-#include "AprilTags/Segment.h"
+#include "Segment.h"
 #include <iostream>
 
 namespace AprilTags {

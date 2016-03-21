@@ -29,7 +29,7 @@ Mat makeTagMat( const TagCodes &family, int which, int blackBorder, int whiteBor
     for( p.x = 0; p.x < edge; ++p.x ) {
 
       if( (p.y < whiteBorder) || (p.y >=  edge - whiteBorder) ||
-      (p.x < whiteBorder) || (p.x >=  edge - whiteBorder) ) {
+          (p.x < whiteBorder) || (p.x >=  edge - whiteBorder) ) {
         tag.at<unsigned char>(p) = WHITE;
       } else if( (p.y < bwBorder) || (p.y >= edge - bwBorder) ||
       (p.x < bwBorder) || (p.x >= edge - bwBorder) ) {
@@ -59,9 +59,10 @@ Mat makeTagMat( const TagCodes &family, int which, int blackBorder, int whiteBor
 
 
 // Lower 4 bytes represent the four corners:
-//   0 | 1
-//   --+--
-//   2 | 3
+//
+//   2 | 3     .-> +X
+//   --+--     |
+//   1 | 0     v +Y
 //
 // Upper four bytes are used as a mask.
 //  0x0_   -- All white/black
@@ -72,9 +73,16 @@ Mat makeTagMat( const TagCodes &family, int which, int blackBorder, int whiteBor
 
 // Done by hand..
 static unsigned char CornerCodeLUT[] = {
-    0x00, 0x20, 0x20, 0x10, 0x20, 0x10, 0x80, 0x40,
-    0x20, 0x80, 0x10, 0x40, 0x10, 0x40, 0x40, 0x00
+    0x00, 0x20, 0x20, 0x10, 0x20, 0x80, 0x10, 0x40,
+    0x20, 0x10, 0x80, 0x40, 0x10, 0x40, 0x40, 0x00
 };
+
+unsigned char cornerLUT( unsigned char corner )
+{
+  unsigned char upper = CornerCodeLUT[ corner & 0x0F ];
+  return (upper & 0xF0) | (corner & 0x0F);
+}
+
 
 cv::Mat makeCornerMat( const TagCodes &family, int which, int blackBorder, int whiteBorder )
 {
@@ -88,16 +96,46 @@ cv::Mat makeCornerMat( const TagCodes &family, int which, int blackBorder, int w
     for( p.x=0; p.x < edge; ++p.x ) {
       unsigned char bits = 0;
       // Might be easier way to do this.  LUT?
-      if( tag.at<unsigned char>(p) )             bits |= 0x01;
-      if( tag.at<unsigned char>(p.y,   p.x+1) )  bits |= 0x02;
-      if( tag.at<unsigned char>(p.y+1, p.x) )    bits |= 0x04;
-      if( tag.at<unsigned char>(p.y+1, p.x+1) )  bits |= 0x08;
+      if( tag.at<unsigned char>(p) )             bits |= 0x04;
+      if( tag.at<unsigned char>(p.y,   p.x+1) )  bits |= 0x08;
+      if( tag.at<unsigned char>(p.y+1, p.x) )    bits |= 0x02;
+      if( tag.at<unsigned char>(p.y+1, p.x+1) )  bits |= 0x01;
 
-      corners.at<unsigned char>(p) = bits | (CornerCodeLUT[bits] & 0xF0);
+      corners.at<unsigned char>(p) = cornerLUT( bits );
     }
   }
 
   return corners;
+}
+
+// Measured + in the image x-y frame, CCW in the "looking at the image" frame
+unsigned char rotate( unsigned char a, int count )
+{
+  unsigned char out = a & 0x0F;
+  if( count > 0 && count < 4 ) {
+    out <<= count;
+  } else if( count < 0 && count > -4 ) {
+    out <<= 4+count;
+  }
+  out = (out & 0x0F) | (out & 0xF0)>>4;
+
+  out &= 0x0F;
+  out |= (a & 0xF0);
+
+  return out;
+}
+
+int spinMatch( unsigned char a, unsigned char b )
+{
+  // By definition, if the type code matches, then a spinMatch is possible
+  // (and for a checkerboard corner, there are two possible solutions...)
+  if( (a & 0xF0) != (b & 0xF0) ) return -1;
+
+  if( (a & 0x0F) == (b & 0x0F) ) return 0;
+  for( unsigned int i = 1; i < 4; ++i )
+    if( (rotate(a,i) & 0x0F) == (b & 0x0F) ) return i;
+
+  return -1;
 }
 
 //=== Convenience drawing functions ====
@@ -131,10 +169,10 @@ cv::Mat drawCornerMat( const Mat &corners, const Size size )
   for( Point p(0,0); p.y < corners.rows; ++p.y ) {
     for( p.x = 0; p.x < corners.cols; ++p.x ) {
 
-      out.at<unsigned char>( p.y*2,   p.x*2 )   = ( corners.at<unsigned char>(p) & 0x01 ) ? 1 : 0;
-      out.at<unsigned char>( p.y*2,   p.x*2+1 ) = ( corners.at<unsigned char>(p) & 0x02 ) ? 1 : 0;
-      out.at<unsigned char>( p.y*2+1, p.x*2 )   = ( corners.at<unsigned char>(p) & 0x04 ) ? 1 : 0;
-      out.at<unsigned char>( p.y*2+1, p.x*2+1 ) = ( corners.at<unsigned char>(p) & 0x08 ) ? 1 : 0;
+      out.at<unsigned char>( p.y*2,   p.x*2 )   = ( corners.at<unsigned char>(p) & 0x04 ) ? 1 : 0;
+      out.at<unsigned char>( p.y*2,   p.x*2+1 ) = ( corners.at<unsigned char>(p) & 0x08 ) ? 1 : 0;
+      out.at<unsigned char>( p.y*2+1, p.x*2 )   = ( corners.at<unsigned char>(p) & 0x02 ) ? 1 : 0;
+      out.at<unsigned char>( p.y*2+1, p.x*2+1 ) = ( corners.at<unsigned char>(p) & 0x01 ) ? 1 : 0;
     }
   }
 

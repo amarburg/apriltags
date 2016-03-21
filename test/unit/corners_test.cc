@@ -62,3 +62,43 @@ TEST( CornersTest, MakeCornerMat ) {
       EXPECT_EQ( gt.corner( p.y*corners.cols + p.x ), corners.at<unsigned char>(p) );
 
 }
+
+const unsigned char t[] = { 0x13, 0x16, 0x1C, 0x19 };
+const unsigned int tcount = sizeof(t)/(4*sizeof(t[0]));
+
+TEST( CornersTest, RotateTest )
+{
+
+  for( unsigned int i = 0; i < tcount; ++i ) {
+    int offset = i*4;
+    EXPECT_EQ( Corners::cornerLUT( t[offset] ), t[offset] );
+    for( unsigned int j = 0; j < 4; ++j ) {
+      unsigned char r = Corners::rotate( t[offset], j );
+      EXPECT_EQ( r, t[offset+j] );
+      EXPECT_EQ( Corners::cornerLUT( r ), r );
+    }
+  }
+}
+
+TEST( CornersTest, SpinTest )
+{
+  for( unsigned int i = 0; i < tcount; ++i ) {
+    int offset = i*4;
+    for( unsigned int j = 0; j < 4; ++j ) {
+      EXPECT_EQ( Corners::spinMatch( t[offset], t[offset+j]), j );
+    }
+  }
+
+  EXPECT_EQ( Corners::spinMatch( t[0], 0x28 ), -1 );
+  EXPECT_EQ( Corners::spinMatch( t[0], 0x4E ), -1 );
+  EXPECT_EQ( Corners::spinMatch( t[0], 0x85 ), -1 );
+
+
+}
+
+
+
+TEST( CornersTest, Terminator )
+{
+  exit(0);
+}

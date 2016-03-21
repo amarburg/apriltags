@@ -1,10 +1,10 @@
 #include <Eigen/Dense>
 
-#include "AprilTags/FloatImage.h"
-#include "AprilTags/MathUtil.h"
-#include "AprilTags/GLine2D.h"
-#include "AprilTags/Quad.h"
-#include "AprilTags/Segment.h"
+#include "Utils/FloatImage.h"
+#include "Utils/MathUtil.h"
+#include "GLine2D.h"
+#include "Quad.h"
+#include "Segment.h"
 
 using namespace cv;
 
