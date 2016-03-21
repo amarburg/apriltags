@@ -6,6 +6,7 @@
 
 namespace AprilTags {
 
+// TODO:  Add unit tests for BinaryClassifier
 
 BinaryClassifier::BinaryClassifier( float whiteMean )
 {

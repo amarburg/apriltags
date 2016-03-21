@@ -8,8 +8,8 @@ namespace AprilTags {
 float const Edge::minMag = 0.06324555320336758; // 0.004f;  The original code calculated magnitude squared,
 float const Edge::maxEdgeCost = 30.f * float(M_PI) / 180.f;
 int const Edge::WEIGHT_SCALE = 100;
-float const Edge::thetaThresh = 2e-5; //100;
-float const Edge::magThresh = 2e-4; //1200;
+float const Edge::thetaThresh = 1e-5; //100;
+float const Edge::magThresh = 1e-4; //1200;
 
 int Edge::edgeCost(float  theta0, float theta1, float mag1) {
   if (mag1 < minMag)  // mag0 was checked by the main routine so no need to recheck here

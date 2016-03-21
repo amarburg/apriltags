@@ -3,7 +3,7 @@
 
 #include "AprilTags/CornerDetector.h"
 #include "AprilTags/BinaryClassifier.h"
-
+#include "AprilTags/ImageMasks.h"
 
 #include <opencv2/highgui/highgui.hpp>
 
@@ -88,61 +88,63 @@ public:
 	unsigned char corner;
 };
 
-
-
-CornerDetector::CornerDetector( void )
-	: DetectorBase( CORNER_DEBUG_IMAGES )
-{;}
-
 //=========================================================
 
-struct Mask {
-	Mask( const cv::Size &sz )
-		: _mask( sz, CV_8UC1, cv::Scalar(0))
-	{;}
+struct Triplet {
 
-	Mask( unsigned int width, unsigned int height )
-		: _mask( height, width, CV_8UC1, cv::Scalar(0))
-	{;}
-
-	void mark( unsigned int x, unsigned int y )
+	Triplet(  Intersection &a,  Intersection &b,  Intersection &c )
+		: _a(a), _b(b), _c(c)
 	{
-		mark( cv::Point2i( x,y ) );
+		_offset[0] = _b.basis[0] - _a.basis[0];
+		_offset[1] = _c.basis[0] - _a.basis[0];
+
+		// Bound the differences to +-PI
+		while( _offset[0] > M_PI ) _offset[0] -= 2*M_PI;
+		while( _offset[1] > M_PI ) _offset[1] -= 2*M_PI;
+		while( _offset[0] <= -M_PI ) _offset[0] += 2*M_PI;
+		while( _offset[1] <= -M_PI ) _offset[1] += 2*M_PI;
 	}
 
-	virtual void mark( const cv::Point2i &pt )
+	Triplet &operator=( const Triplet &t )
+	{ _a = t._a; _b = t._b; _c = t._c;
+		_offset[0] = t._offset[0]; _offset[1] = t._offset[1];
+		return *this; }
+
+	const Intersection &operator[]( unsigned int i ) const
+	{ return (i==0) ? _a : ((i==1) ? _b : _c); }
+
+	float area( void ) const
 	{
-		_mask.at<unsigned char>(pt) = 1;
+		float ab = MathUtil::distance2D( _a.center, _b.center ),
+					bc = MathUtil::distance2D( _b.center, _c.center ),
+					ca = MathUtil::distance2D( _c.center, _a.center );
+ 		float s = 0.5 * (ab + bc + ca );
+
+		return sqrt( s * (s-ab) * (s-bc) * (s-ca) );
 	}
 
-	bool check( unsigned int x, unsigned int y )
+	bool hasAngularAgreement( float threshold = 0.2 ) const
 	{
-		return check( cv::Point2i( x,y ));
+		float o[2] = { _offset[0], _offset[1] };
+		// What is the total distance spanned by the basis[0] vectors, modulo PI/2
+		while( o[0] > M_PI/2 ) o[0] -= M_PI/2;
+		while( o[1] > M_PI/2 ) o[1] -= M_PI/2;
+		while( o[0] <= -M_PI/2 ) o[0] += M_PI/2;
+		while( o[1] <= -M_PI/2 ) o[1] += M_PI/2;
+
+		return ( o[0] < threshold && o[1] < threshold &&
+						o[0] > -threshold && o[1] > -threshold );
 	}
 
-	bool check( const cv::Point2i &pt )
-	{
-		return _mask.at<unsigned char>( pt ) == 0;
-	}
+	Intersection &_a, &_b, &_c;
+	float _offset[2];
 
-	cv::Mat _mask;
+
 };
 
-struct ImageMask : public Mask {
-	ImageMask( const cv::Size &sz, float radius )
-		: Mask( sz ),
-			_radius( radius )
-	{;}
-
-	virtual void mark( const cv::Point2i &pt )
-	{
-		circle( _mask, pt, _radius, cv::Scalar(1), -1 );
-	}
-
-	float _radius;
-};
 
 
+//=========================================================
 
 // Kind of strange to do this but seems to be reticence to putting state
 // in the detector itself.
@@ -159,6 +161,9 @@ struct ImageMask : public Mask {
 
 //=========================================================
 
+CornerDetector::CornerDetector( void )
+       : DetectorBase( CORNER_DEBUG_IMAGES )
+{;}
 
 CornerDetectionArray CornerDetector::detect( const Mat &inImage, const CornerArray &array )
 {
@@ -247,20 +252,52 @@ CornerDetectionArray CornerDetector::detect( const Mat &inImage, const CornerArr
 	std::cout << intersections.size() << " intersections" << std::endl;
 	if( _saveDebugImages ) saveIntersectionImage( intersections );
 
+	vector< cv::Vec6f > delTriangles;
+	delaunay.getTriangleList( delTriangles );
+	std::cout << delTriangles.size() << " Delaunay triangles" << std::endl;
 
-
-	// Push all intersections into the delaunay transformation
-	for( auto const &intersection : intersections ) {
-		delaunay.insert( intersection.center );
-	}
-
-	vector< cv::Vec6f > triangles;
-	delaunay.getTriangleList( triangles );
-	std::cout << triangles.size() << " triangles" << std::endl;
+	vector< Triplet > triplets;
 
 	// Need to map from Delaunay triangles back to triplets of intersections
+	// Brute force it for now
+	for( auto const &tri : delTriangles ) {
 
+		// Check for any outside vertices outside the image (those on the edges)
+		if( tri[0] < 0 || tri[2] < 0 || tri[4] < 0 ||
+				tri[0] >= width || tri[2] >= width || tri[4] >= width ||
+ 				tri[1] < 0 || tri[3] < 0 || tri[5] < 0 ||
+				tri[1] >= height || tri[3] >= height || tri[5] >= height ) continue;
 
+		unsigned int idx[3] = {0,0,0};
+		bool set[3] = {false, false, false};
+		for( int i = 0; i < 3; ++i  ) {
+			for( unsigned int j = 0; j < intersections.size(); ++j ) {
+				if( intersections[j].center.x == tri[2*i] && intersections[j].center.y == tri[(2*i)+1] ) {
+					idx[i] = j;
+					set[i] = true;
+					break;
+				}
+			}
+		}
+		if( set[0] == false || set[1] == false || set[2] == false ) continue;
+
+		triplets.push_back( Triplet(intersections[idx[0]], intersections[idx[1]], intersections[idx[2]]) );
+	}
+
+	std::cout << triplets.size() << " intersection triplets" << std::endl;
+
+	if( _saveDebugImages ) saveTripletImage( triplets );
+
+	// Look at the distribution of areas
+	vector< float > areas( triplets.size() );
+	std::transform( triplets.begin(), triplets.end(), areas.begin(),
+									[]( const Triplet &t ){ return t.area(); });
+
+	// Drop triplets with poor angle agreement
+	std::remove_if( triplets.begin(), triplets.end(),
+									[]( const Triplet &t ){ return !t.hasAngularAgreement(); } );
+
+		std::cout << triplets.size() << " triplets after filtering" << std::endl;
 
 	return output;
 }
@@ -276,8 +313,7 @@ void CornerDetector::saveIntersectionImage( const vector< Intersection > &inters
 
 	CV_Assert( intersectionsImage.type() == CV_32FC3 );
 
-	for( unsigned int i = 0; i < intersections.size(); ++i ) {
-		const Intersection &intersection( intersections[i] );
+	for( auto const &intersection : intersections  ) {
 		long r = random();
 		cv::Scalar color( (float)(r & 0xFF)/255, (float)((r&0xFF00)>>8)/255, (float)((r&0xFF0000)>>8)/255 );
 		float radius = float(intersectionsImage.rows + intersectionsImage.cols)/2 * 0.01;
@@ -309,5 +345,32 @@ void CornerDetector::saveIntersectionImage( const vector< Intersection > &inters
 
 	saveDebugImage( intersectionsImage, IntersectionImage, false );
 }
+
+
+void CornerDetector::saveTripletImage( const vector< Triplet > &triplets )
+{
+	Mat tripletImage;
+	// Boost back to color imagery for better annotation
+	debugImage( OriginalBGRImage ).copyTo( tripletImage );
+
+	CV_Assert( tripletImage.type() == CV_32FC3 );
+
+	for( auto const &triplet : triplets ) {
+		long r = random();
+		cv::Scalar color( (float)(r & 0xFF)/255, (float)((r&0xFF00)>>8)/255, (float)((r&0xFF0000)>>8)/255 );
+
+		cv::line( tripletImage, triplet[0].center, triplet[1].center,
+							color, 2 );
+		cv::line( tripletImage, triplet[1].center, triplet[2].center,
+							color, 2 );
+		cv::line( tripletImage, triplet[2].center, triplet[0].center,
+							color, 2 );
+
+
+	}
+
+	saveDebugImage( tripletImage, TripletImage, false );
+}
+
 
 }

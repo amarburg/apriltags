@@ -11,6 +11,7 @@
 namespace AprilTags {
 
 	struct Intersection;
+	struct Triplet;
 
 	struct CornerDetection {
 	public:
@@ -27,7 +28,8 @@ namespace AprilTags {
 
 		enum  CornerDebugImages_t {
 			IntersectionImage = BASE_DEBUG_IMAGES,
-			CORNER_DEBUG_IMAGES = BASE_DEBUG_IMAGES+1
+			TripletImage = BASE_DEBUG_IMAGES+1,
+			CORNER_DEBUG_IMAGES = BASE_DEBUG_IMAGES+2
 		};
 
 
@@ -38,6 +40,7 @@ namespace AprilTags {
 	protected:
 
 		void saveIntersectionImage( const vector< Intersection > &intersections );
+		void saveTripletImage( const vector< Triplet > &triplets );
 
 
 	};

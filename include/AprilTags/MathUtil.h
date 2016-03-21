@@ -45,6 +45,11 @@ public:
 		return std::sqrt(dx*dx + dy*dy);
 	}
 
+	static inline float distance2D(const cv::Point2f &a, const cv::Point2f b )
+	{
+		return std::sqrt( distance2Dsqr( a, b ));
+	}
+
 	//! Returns a result in [-Pi, Pi]
 	static inline float mod2pi(float vin) {
 		const float twopi = 2 * (float)M_PI;
