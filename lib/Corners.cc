@@ -59,9 +59,10 @@ Mat makeTagMat( const TagCodes &family, int which, int blackBorder, int whiteBor
 
 
 // Lower 4 bytes represent the four corners:
-//   0 | 1
-//   --+--
-//   2 | 3
+//
+//   0 | 1     .-> +X
+//   --+--     |
+//   2 | 3     v +Y
 //
 // Upper four bytes are used as a mask.
 //  0x0_   -- All white/black

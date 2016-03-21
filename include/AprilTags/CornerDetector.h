@@ -10,6 +10,8 @@
 
 namespace AprilTags {
 
+	struct Intersection;
+
 	struct CornerDetection {
 	public:
 		CornerDetection()
@@ -35,7 +37,7 @@ namespace AprilTags {
 
 	protected:
 
-		void saveIntersectionImage( const vector< cv::Point2f > &intersections );
+		void saveIntersectionImage( const vector< Intersection > &intersections );
 
 
 	};

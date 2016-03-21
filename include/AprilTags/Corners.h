@@ -51,9 +51,9 @@ namespace AprilTags {
       * corner, inside white corner, or an edge (by CornerTypeMasks).
       * The lower four bits describe the four surrounding squares:
       *
-      *   2 | 3     .-> +X
+      *   0 | 1     .-> +X
       *   --+--     |
-      *   0 | 1     v +Y
+      *   2 | 3     v +Y
       *
       * As either BLACK or WHITE.  By definition, there are only
       * 2^4 = 16 possible combinations and the value of the lower four bits
