@@ -34,8 +34,13 @@ add_library(apriltags ${SOURCE_FILES})
 target_link_libraries(apriltags ${OpenCV_LIBS}) #-pg) #-fopenmp)
 
 ## Slightly obtuse syntax.  Travis uses CMake 2.8.7 and GCC 4.6.3
-add_definitions( -Wall -Werror -ggdb )
-#add_definitions( -std=c++11 -pedantic -Wall -Werror )
+add_definitions( -std=c++11 -Wall )
+#add_definitions( -std=c++11 -pedantic -Wall )
+
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Werror -ggdb")
+#set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")   # Use default for now
+#set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -O3 -ggdb")  ## Use default for now
+
 
 file(GLOB HEADER_FILES ${CMAKE_SOURCE_DIR}/include/Apriltags/*)
 install(PROGRAMS ${HEADER_FILES} DESTINATION include/AprilTags COMPONENT applications)
