@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include <map>
 #include <vector>
 #include <memory>
 #include <opencv2/core/core.hpp>
@@ -32,7 +33,8 @@ namespace AprilTags {
 		enum  CornerDebugImages_t {
 			IntersectionImage = BASE_DEBUG_IMAGES,
 			TriangleImage = BASE_DEBUG_IMAGES+1,
-			CORNER_DEBUG_IMAGES = BASE_DEBUG_IMAGES+2
+			MeshImage = BASE_DEBUG_IMAGES+2,
+			CORNER_DEBUG_IMAGES = BASE_DEBUG_IMAGES+3
 		};
 
 
@@ -40,11 +42,13 @@ namespace AprilTags {
 
 		CornerDetectionArray detect( const cv::Mat &inImage, const CornerArray &array );
 
+		void attemptMatch( const CornerArray &array, const std::map< shared_ptr< Intersection >, cv::Point2f > &mesh );
+
 	protected:
 
 		void saveIntersectionImage( const std::vector< std::shared_ptr<Intersection> > &intersections );
 		void saveTriangleImage( const std::vector< std::shared_ptr<Triangle> > &triangles );
-
+		void saveMeshImage( const std::map< shared_ptr< Intersection >, cv::Point2f > &mesh );
 
 	};
 

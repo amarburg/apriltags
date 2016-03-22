@@ -5,6 +5,7 @@
 
 #include "Utils/BinaryClassifier.h"
 #include "Utils/ImageMasks.h"
+#include "Utils/MinMax.h"
 
 #include "Geometry/LineSegment.h"
 #include "CornerDetector/CornerDetectorTypes.h"
@@ -96,7 +97,9 @@ CornerDetectionArray CornerDetector::detect( const Mat &inImage, const CornerArr
 	// Find segment pairs with endpoints which are close together and an
 	// included angle which is far from either 0 or M_PI
 
-	DelaunayGeometry delaunay( cv::Size( width, height ), debugImage( OriginalBGRImage ) );
+	//DelaunayGeometry delaunay( cv::Size( width, height ), debugImage( OriginalBGRImage ) );
+	DelaunayGeometry delaunay( cv::Size( width, height ) );
+
 
 	int minDistance = 1 * min( 1e-2 * width, 1e-2 * height );
 	int minDistanceSq = minDistance * minDistance;
@@ -157,79 +160,27 @@ CornerDetectionArray CornerDetector::detect( const Mat &inImage, const CornerArr
 	std::cout << delaunay.triangles().size() << " Delaunay triangles" << std::endl;
 
 
-
-
-	// vector< cv::Vec6f > delTriangles;
-	// delaunay.getTriangleList( delTriangles );
-	// std::cout << delTriangles.size() << " Delaunay triangles" << std::endl;
-	//
-	// vector< Triplet > triplets;
-	//
-	// // Need to map from Delaunay triangles back to triplets of intersections
-	// // Brute force it for now
-	// for( auto const &tri : delTriangles ) {
-	//
-	// 	// Check for any outside vertices outside the image (those on the edges)
-	// 	if( tri[0] < 0 || tri[2] < 0 || tri[4] < 0 ||
-	// 			tri[0] >= width || tri[2] >= width || tri[4] >= width ||
- // 				tri[1] < 0 || tri[3] < 0 || tri[5] < 0 ||
-	// 			tri[1] >= height || tri[3] >= height || tri[5] >= height ) continue;
-	//
-	// 	unsigned int idx[3] = {0,0,0};
-	// 	bool set[3] = {false, false, false};
-	// 	for( int i = 0; i < 3; ++i  ) {
-	// 		for( unsigned int j = 0; j < intersections.size(); ++j ) {
-	// 			if( intersections[j].center.x == tri[2*i] && intersections[j].center.y == tri[(2*i)+1] ) {
-	// 				idx[i] = j;
-	// 				set[i] = true;
-	// 				break;
-	// 			}
-	// 		}
-	// 	}
-	// 	if( set[0] == false || set[1] == false || set[2] == false ) continue;
-	//
-	// 	triplets.push_back( Triplet(intersections[idx[0]], intersections[idx[1]], intersections[idx[2]]) );
-	// }
-	//
-	// std::cout << triplets.size() << " intersection triplets" << std::endl;
-
 	if( _saveDebugImages ) saveTriangleImage( delaunay.triangles() );
 
 
 	delaunay.buildMesh();
 
-	//
-	// // // Look at the distribution of areas
-	// // vector< float > areas( triplets.size() );
-	// // std::transform( triplets.begin(), triplets.end(), areas.begin(),
-	// // 								[]( const Triplet &t ){ return t.area(); });
-	//
-	// // Drop triplets with poor angle agreement
-	// std::remove_if( triplets.begin(), triplets.end(),
-	// 								[]( const Triplet &t ){ return !t.hasAngularAgreement(); } );
-	//
-	// std::cout << triplets.size() << " triplets after filtering" << std::endl;
-	//
-	// // Choose a triplet to start with, biased towards smaller end of distribution
-	// std::sort( triplets.begin(), triplets.end(),
-	// 								[]( const Triplet &a, const Triplet &b ){ return a.area() > b.area(); } );
-	//
-	// int idx = triplets.size() * 0.25;
-	//
-	// Triplet &t( triplets[idx] );
-	// CornerArray corners;
-	// std::map< Intersection &, unsigned int > cornerMap;
-	//
-	// // Establish baseline with a and b from triplet
-	// cornerMap.insert( std::make_pair( t._a, corners.add( cv::Point2f(0,0), t._a.corner, t._a.basis[0] ) ) );
-	// cornerMap.insert( std::make_pair( t._b, corners.add( cv::Point2f(1,0), t._b.corner, t._b.basis[0] ) ) );
-	//
-	// // Project point c into this frame
-	// project( corners, cornerMap, t );
-	//
-	// // Now recursively add all of points from each edge.
+
+	if( _saveDebugImages) saveMeshImage( delaunay.mesh() );
+
+	// Now attempt to match mesh to CornerArray
+
+	// Ransac like-approach?
+	attemptMatch( array, delaunay.mesh() );
 
 	return output;
+}
+
+
+void CornerDetector::attemptMatch( const CornerArray &array, const std::map< shared_ptr< Intersection >, cv::Point2f > &mesh )
+{
+
+
 }
 
 
@@ -318,6 +269,28 @@ void CornerDetector::saveTriangleImage( const vector< shared_ptr<Triangle> > &tr
 	}
 
 	saveDebugImage( tripletImage, TriangleImage, false );
+}
+
+void CornerDetector::saveMeshImage( const map< shared_ptr< Intersection >, cv::Point2f > &mesh )
+{
+	// Now find the bounding box on mesh
+	PointMinMax mm;
+	for( auto const &p : mesh ) {
+		mm.check( p.second );
+	}
+
+	float w( mm.x.max-mm.x.min ), h( mm.y.max - mm.y.min );
+	float scale = 700 / std::max( h, w );
+	cv::Point2f origin( mm.x.min, mm.y.min );
+	cv::Point2f offset( 50,50);
+	Mat meshImage( cv::Size( 800, 800 ), CV_32FC3, cv::Scalar(255,255,255) );
+
+	for( auto const &p : mesh ) {
+		cv::Scalar color(0,0,0);
+		cv::circle( meshImage, scale*(p.second-origin) + offset, 5, color, -1 );
+	}
+
+	saveDebugImage( meshImage, MeshImage, false );
 }
 
 

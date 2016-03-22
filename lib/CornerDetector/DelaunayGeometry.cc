@@ -262,7 +262,7 @@ namespace AprilTags {
 
 			imshow("Mesh", meshOut );
 
-			cv::waitKey(10);
+			// cv::waitKey(10);
 		}
 
 		// Check for agreement

@@ -154,66 +154,66 @@ namespace AprilTags {
 		unsigned char corner;
 	};
 
-	//=========================================================
-
-	struct Triplet {
-
-		Triplet(  Intersection &a,  Intersection &b,  Intersection &c )
-			: _a(a), _b(b), _c(c)
-		{
-			_offset[0] = _b.basis[0] - _a.basis[0];
-			_offset[1] = _c.basis[0] - _a.basis[0];
-
-			// Bound the differences to +-PI
-			while( _offset[0] > M_PI ) _offset[0] -= 2*M_PI;
-			while( _offset[1] > M_PI ) _offset[1] -= 2*M_PI;
-			while( _offset[0] <= -M_PI ) _offset[0] += 2*M_PI;
-			while( _offset[1] <= -M_PI ) _offset[1] += 2*M_PI;
-		}
-
-		Triplet &operator=( const Triplet &t )
-		{ _a = t._a; _b = t._b; _c = t._c;
-			_offset[0] = t._offset[0]; _offset[1] = t._offset[1];
-			return *this; }
-
-		const Intersection &operator[]( unsigned int i ) const
-		{ return (i==0) ? _a : ((i==1) ? _b : _c); }
-
-		float area( void ) const
-		{
-			float ab = MathUtil::distance2D( _a.center, _b.center ),
-						bc = MathUtil::distance2D( _b.center, _c.center ),
-						ca = MathUtil::distance2D( _c.center, _a.center );
-	 		float s = 0.5 * (ab + bc + ca );
-
-			return sqrt( s * (s-ab) * (s-bc) * (s-ca) );
-		}
-
-		bool hasAngularAgreement( float threshold = 0.2 ) const
-		{
-			float o[2] = { _offset[0], _offset[1] };
-			// What is the total distance spanned by the basis[0] vectors, modulo PI/2
-			while( o[0] > M_PI/2 ) o[0] -= M_PI/2;
-			while( o[1] > M_PI/2 ) o[1] -= M_PI/2;
-			while( o[0] <= -M_PI/2 ) o[0] += M_PI/2;
-			while( o[1] <= -M_PI/2 ) o[1] += M_PI/2;
-
-			return ( o[0] < threshold && o[1] < threshold &&
-							o[0] > -threshold && o[1] > -threshold );
-		}
-
-		Matx33f meanTransform( void )
-		{
-			// What is a mean affine transform anyway?
-
-			return Matx33f();
-		}
-
-		Intersection &_a, &_b, &_c;
-		float _offset[2];
-
-
-	};
+	// //=========================================================
+	//
+	// struct Triplet {
+	//
+	// 	Triplet(  Intersection &a,  Intersection &b,  Intersection &c )
+	// 		: _a(a), _b(b), _c(c)
+	// 	{
+	// 		_offset[0] = _b.basis[0] - _a.basis[0];
+	// 		_offset[1] = _c.basis[0] - _a.basis[0];
+	//
+	// 		// Bound the differences to +-PI
+	// 		while( _offset[0] > M_PI ) _offset[0] -= 2*M_PI;
+	// 		while( _offset[1] > M_PI ) _offset[1] -= 2*M_PI;
+	// 		while( _offset[0] <= -M_PI ) _offset[0] += 2*M_PI;
+	// 		while( _offset[1] <= -M_PI ) _offset[1] += 2*M_PI;
+	// 	}
+	//
+	// 	Triplet &operator=( const Triplet &t )
+	// 	{ _a = t._a; _b = t._b; _c = t._c;
+	// 		_offset[0] = t._offset[0]; _offset[1] = t._offset[1];
+	// 		return *this; }
+	//
+	// 	const Intersection &operator[]( unsigned int i ) const
+	// 	{ return (i==0) ? _a : ((i==1) ? _b : _c); }
+	//
+	// 	float area( void ) const
+	// 	{
+	// 		float ab = MathUtil::distance2D( _a.center, _b.center ),
+	// 					bc = MathUtil::distance2D( _b.center, _c.center ),
+	// 					ca = MathUtil::distance2D( _c.center, _a.center );
+	//  		float s = 0.5 * (ab + bc + ca );
+	//
+	// 		return sqrt( s * (s-ab) * (s-bc) * (s-ca) );
+	// 	}
+	//
+	// 	bool hasAngularAgreement( float threshold = 0.2 ) const
+	// 	{
+	// 		float o[2] = { _offset[0], _offset[1] };
+	// 		// What is the total distance spanned by the basis[0] vectors, modulo PI/2
+	// 		while( o[0] > M_PI/2 ) o[0] -= M_PI/2;
+	// 		while( o[1] > M_PI/2 ) o[1] -= M_PI/2;
+	// 		while( o[0] <= -M_PI/2 ) o[0] += M_PI/2;
+	// 		while( o[1] <= -M_PI/2 ) o[1] += M_PI/2;
+	//
+	// 		return ( o[0] < threshold && o[1] < threshold &&
+	// 						o[0] > -threshold && o[1] > -threshold );
+	// 	}
+	//
+	// 	Matx33f meanTransform( void )
+	// 	{
+	// 		// What is a mean affine transform anyway?
+	//
+	// 		return Matx33f();
+	// 	}
+	//
+	// 	Intersection &_a, &_b, &_c;
+	// 	float _offset[2];
+	//
+	//
+	// };
 
 
 	struct Triangle {

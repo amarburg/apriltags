@@ -64,13 +64,13 @@ TEST( CornerDetectorTest, DefaultConfiguration ) {
   write32FC3("/tmp/corner_line_segment_image.jpg", detector.debugImage(DetectorBase::LineSegmentsImage) );
   write32FC3("/tmp/corner_intersections.jpg", detector.debugImage(CornerDetector::IntersectionImage) );
   write32FC3("/tmp/corner_triangles.jpg", detector.debugImage(CornerDetector::TriangleImage) );
+  write32FC3("/tmp/corner_mesh.jpg", detector.debugImage(CornerDetector::MeshImage) );
 
 
   // write32FC1("/tmp/quad_image.jpg", detector.debugImage(TagDetector::QuadImage) );
 }
 
 
-// Inefficient to detect both here and in the tag detector tests
 TEST( CornerDetectorTest, ObliqueImage ) {
   const TagCodes whichCode = tagCodes36h11;
 
@@ -89,7 +89,6 @@ TEST( CornerDetectorTest, ObliqueImage ) {
 
   EXPECT_EQ( 0, detections.size() );
 
-
   // EXPECT_EQ( detector.debugImage(TagDetector::QuadImage).size(), inputImage.size() );
 
   write32FC1("/tmp/corner_oblique_original.jpg", detector.debugImage(DetectorBase::OriginalImage) );
@@ -98,7 +97,7 @@ TEST( CornerDetectorTest, ObliqueImage ) {
   write32FC3("/tmp/corner_oblique_line_segment_image.jpg", detector.debugImage(DetectorBase::LineSegmentsImage) );
   write32FC3("/tmp/corner_oblique_intersections.jpg", detector.debugImage(CornerDetector::IntersectionImage) );
   write32FC3("/tmp/corner_oblique_triangles.jpg", detector.debugImage(CornerDetector::TriangleImage) );
-
+  write32FC3("/tmp/corner_oblique_mesh.jpg", detector.debugImage(CornerDetector::MeshImage) );
 
   // write32FC1("/tmp/quad_image.jpg", detector.debugImage(TagDetector::QuadImage) );
 

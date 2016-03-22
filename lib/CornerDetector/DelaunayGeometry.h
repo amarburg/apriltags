@@ -27,6 +27,9 @@ public:
 	std::vector< std::shared_ptr< Triangle > > &triangles( void )
 		{ update(); return _triangles; }
 
+	const map< shared_ptr< Intersection >, cv::Point2f > &mesh( void ) const
+		{ return _mesh; }
+
 	void buildMesh( void );
 
 protected:
