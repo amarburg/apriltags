@@ -1,5 +1,6 @@
 #pragma once
 
+#include <queue>
 
 #include <opencv2/core/core.hpp>
 
@@ -42,6 +43,8 @@ protected:
 
 	std::vector< std::shared_ptr< Triangle > > _triangles;
 	std::vector< std::shared_ptr< Intersection > > _vertices;
+
+	std::queue< std::shared_ptr< Triangle > > _workQueue;
 
 	map< shared_ptr< Intersection >, cv::Point2f > _mesh;
 	map< shared_ptr< Triangle >, bool > _visited;

@@ -113,6 +113,15 @@ namespace AprilTags {
 		_mesh[ a->vertex(0) ] = cv::Point2f( 0, 0 );
 		_mesh[ a->vertex(1) ] = cv::Point2f( 1, 0 );
 
+		// Shouldn't be necessary, should always be empty
+		while( !_workQueue.empty() ) _workQueue.pop();
+		_workQueue.push(a);
+
+		while( !_workQueue.empty() ) {
+			projectTriangle( _workQueue.front() );
+			_workQueue.pop();
+		}
+
 		projectTriangle( a );
 	}
 
@@ -130,8 +139,8 @@ namespace AprilTags {
 
 		// Iterate to neighbors
 		for( int i = 0; i < 3; ++i )
-			if( tri->neighbor(i).get() != NULL )
-				projectTriangle( tri->neighbor(i) );
+			if( tri->neighbor(i).get() != NULL && _visited.find(tri->neighbor(i)) == _visited.end())
+				_workQueue.push( tri->neighbor(i) );
 
 		// projectTriangle( tri->neighbor(0) );
 		// projectTriangle( tri->neighbor(1) );
