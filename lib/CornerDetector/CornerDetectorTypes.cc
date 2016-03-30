@@ -51,7 +51,7 @@ float Intersection::includedAngle( void ) const
 
 cv::Point2f Intersection::transform( const cv::Point2f &in ) const
 {
-	cv::Vec3f o( _transform * cv::Vec3f( in.x, in.y, 1 ));
+	cv::Vec3f o = _transform * cv::Vec3f( in.x, in.y, 1 );
 	return cv::Point2f( o[0]/o[2], o[1]/o[2]);
 }
 
@@ -62,7 +62,7 @@ cv::Point2f Intersection::absTransform( const cv::Point2f &in ) const
 
 cv::Point2f Intersection::invTransform( const cv::Point2f &in ) const
 {
-	cv::Vec3f o( _transform.inv() * cv::Vec3f( in.x, in.y, 1 ));
+	cv::Vec3f o = _transform.inv() * cv::Vec3f( in.x, in.y, 1 );
 	return cv::Point2f( o[0]/o[2], o[1]/o[2]);
 }
 

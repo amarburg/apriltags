@@ -500,13 +500,13 @@ for( auto &ePair : originPoint.eval ) {
 
 
 
-			Mat shrunkArr;
-			cv::resize( arrayImage.mat, shrunkArr, cv::Size( arrayImage.mat.cols/2, arrayImage.mat.rows/2));
-			cv::imshow( "Array", shrunkArr );
-			Mat shrunk;
-			cv::resize( originalImage, shrunk, cv::Size( originalImage.cols/4, originalImage.rows/4));
-			cv::imshow( "Original", shrunk );
-			cv::waitKey();
+			// Mat shrunkArr;
+			// cv::resize( arrayImage.mat, shrunkArr, cv::Size( arrayImage.mat.cols/2, arrayImage.mat.rows/2));
+			// cv::imshow( "Array", shrunkArr );
+			// Mat shrunk;
+			// cv::resize( originalImage, shrunk, cv::Size( originalImage.cols/4, originalImage.rows/4));
+			// cv::imshow( "Original", shrunk );
+			// cv::waitKey();
 		}
 
  	}
