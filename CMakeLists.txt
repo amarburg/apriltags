@@ -24,12 +24,12 @@ include_directories(include lib)
 
 
 
-## Slightly obtuse syntax.  Travis uses Precise @ CMake 2.8.7 and GCC 4.6.3
+## Slightly obtuse syntax.
 add_definitions( -std=c++11 -Wall )
 #-pg) #-fopenmp)
 #add_definitions( -std=c++11 -pedantic -Wall )
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Werror -ggdb")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ggdb")  #  -Werror (Eigen version 3.0.5 has unresolved warnings on travis, so cannot use -Werror)
 #set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")   # Use default for now
 #set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -O3 -ggdb")  ## Use default for now
 
