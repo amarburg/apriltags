@@ -51,8 +51,11 @@ float Intersection::includedAngle( void ) const
 
 cv::Point2f Intersection::transform( const cv::Point2f &in ) const
 {
-	cv::Vec3f o = _transform * cv::Vec3f( in.x, in.y, 1 );
-	return cv::Point2f( o[0]/o[2], o[1]/o[2]);
+	// (I originally wrote this to use Vec3f, but very old versions of
+  // opencv (like the 2.3.x on Travis precise builds) can't seem
+	// to handle the conversion from Matx31f -> Vec3f )
+	cv::Matx31f o( _transform * cv::Vec3f( in.x, in.y, 1 ) );
+	return cv::Point2f( o(0,0)/o(2,0), o(1,0)/o(2,0));
 }
 
 cv::Point2f Intersection::absTransform( const cv::Point2f &in ) const
@@ -62,8 +65,8 @@ cv::Point2f Intersection::absTransform( const cv::Point2f &in ) const
 
 cv::Point2f Intersection::invTransform( const cv::Point2f &in ) const
 {
-	cv::Vec3f o = _transform.inv() * cv::Vec3f( in.x, in.y, 1 );
-	return cv::Point2f( o[0]/o[2], o[1]/o[2]);
+	cv::Matx31f o( _transform.inv() * cv::Vec3f( in.x, in.y, 1 ) );
+	return cv::Point2f( o(0,0)/o(2,0), o(1,0)/o(2,0));
 }
 
 cv::Point2f Intersection::absInvTransform( const cv::Point2f &in ) const
