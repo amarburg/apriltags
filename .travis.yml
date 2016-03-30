@@ -4,6 +4,8 @@ compiler:
   - gcc
 env:
   - CMAKE_VARS="-D CMAKE_BUILD_TYPE=Debug -D USE_OPENMP=ON" OMP_NUM_THREADS=2
+  - CC=gcc-4.8
+  - CXX=g++-4.8
 script: .travis/build.sh
 addons:
   apt:
@@ -11,3 +13,5 @@ addons:
       - libopencv-dev
       - libeigen3-dev
       - libgtest-dev
+      - gcc-4.8
+      - g++-4.8

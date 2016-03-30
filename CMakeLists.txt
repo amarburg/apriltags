@@ -24,7 +24,7 @@ include_directories(include lib)
 
 
 
-## Slightly obtuse syntax.  Travis uses CMake 2.8.7 and GCC 4.6.3
+## Slightly obtuse syntax.  Travis uses Precise @ CMake 2.8.7 and GCC 4.6.3
 add_definitions( -std=c++11 -Wall )
 #-pg) #-fopenmp)
 #add_definitions( -std=c++11 -pedantic -Wall )
