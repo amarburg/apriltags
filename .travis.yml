@@ -3,7 +3,7 @@ sudo: false
 compiler:
   - gcc
 env:
-  - CMAKE_VARS="-DCMAKE_BUILD_TYPE=Debug -DUSE_OPENMP=ON -DCMAKE_CXX_COMPILER=g++_4.8" OMP_NUM_THREADS=2
+  - CMAKE_VARS="-DCMAKE_BUILD_TYPE=Debug -DUSE_OPENMP=ON -DCMAKE_CXX_COMPILER=g++-4.8" OMP_NUM_THREADS=2
 install:
   - export CC="gcc-4.8" CXX="g++-4.8"
 script: .travis/build.sh
