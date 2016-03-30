@@ -11,7 +11,7 @@
 
 #include "Utils/range.hpp"
 
-#include "Apriltags/Corners.h"
+#include "AprilTags/Corners.h"
 
 #include "Geometry/LineSegment.h"
 #include "CornerDetector/CornerDetectorTypes.h"
