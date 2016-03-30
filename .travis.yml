@@ -1,8 +1,13 @@
 language: cpp
+sudo: false
 compiler:
   - gcc
 env:
-  - CMAKE_VARS="-D CMAKE_BUILD_TYPE=Debug -D USE_OPENMP=ON -D BUILD_DETECTOR_WITH_DEBUG=ON" OMP_NUM_THREADS=2 OPENCV=3
-#  - CMAKE_VARS="-D CMAKE_BUILD_TYPE=Debug -D USE_OPENMP=ON" OMP_NUM_THREADS=2 OPENCV=2
-install: sudo -E .travis/dependencies.sh
+  - CMAKE_VARS="-D CMAKE_BUILD_TYPE=Debug -D USE_OPENMP=ON" OMP_NUM_THREADS=2
 script: .travis/build.sh
+addons:
+  apt:
+    sources:
+      - libopencv-dev
+      - libeigen3-dev
+      - libgtest-dev
