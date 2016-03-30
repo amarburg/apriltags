@@ -1,11 +1,9 @@
 language: cpp
 sudo: false
 compiler:
-  - gcc
+  - gcc-4.8
 env:
-  - CMAKE_VARS="-D CMAKE_BUILD_TYPE=Debug -D USE_OPENMP=ON" OMP_NUM_THREADS=2
-  - CC=gcc-4.8
-  - CXX=g++-4.8
+  - CC=gcc-4.8 CXX=g++-4.8 CMAKE_VARS="-D CMAKE_BUILD_TYPE=Debug -D USE_OPENMP=ON" OMP_NUM_THREADS=2
 script: .travis/build.sh
 addons:
   apt:
