@@ -7,7 +7,7 @@ env:
 script: .travis/build.sh
 addons:
   apt:
-    sources:
+    packages:
       - libopencv-dev
       - libeigen3-dev
       - libgtest-dev
