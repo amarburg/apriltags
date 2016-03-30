@@ -11,4 +11,4 @@ target_link_libraries( tag_detector_perf
          apriltags )
 
 # Add a custom target "perf" which runs any performance tests
-add_custom_target( perftest ${CMAKE_CURRENT_BINARY_DIR}/tag_detector_perf )
+add_custom_target( perf_test ${CMAKE_CURRENT_BINARY_DIR}/tag_detector_perf )
