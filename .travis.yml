@@ -7,6 +7,9 @@ env:
 script: .travis/build.sh
 addons:
   apt:
+    sources:
+      # Add PPAs with more up-to-date toolchains
+      - ubuntu-toolchain-r-test
     packages:
       - libopencv-dev
       - libeigen3-dev
