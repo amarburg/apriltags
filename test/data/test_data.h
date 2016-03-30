@@ -16,7 +16,7 @@
 #define TEST_36H11_OBLIQUE_GREYSCALE_JPG  (TEST_DATA_DIR "/test_36h11_oblique_greyscale.jpg")
 
 #define TEST_36H11_CLOSE_JPG            (TEST_DATA_DIR "/test_36h11_close.jpg")
-#define TEST_36H11_CLOSE_OBLIQUE_JPG            (TEST_DATA_DIR "/test_36h11_close_oblique_fisheye.jpg")
+#define TEST_36H11_CLOSE_OBLIQUE_JPG    (TEST_DATA_DIR "/test_36h11_close_oblique_fisheye.jpg")
 
 
 
