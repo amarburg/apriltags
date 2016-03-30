@@ -13,7 +13,7 @@ HOME=$PWD
 # 	sudo ln -s /usr/lib/libtbb.so.2 /usr/lib/libtbb.so
 # fi
 
-# Now build out package
+# Now build Apriltags package
 cd $HOME
 mkdir build
 cd build

@@ -1,4 +1,3 @@
-find_package( GTest REQUIRED )
 
 include_directories( ${GTEST_INCLUDE_DIRS}
                      ${CMAKE_SOURCE_DIR}/test/data )
@@ -19,5 +18,5 @@ target_link_libraries( apriltags_unit_test
           apriltags )
 
 # Don't use ctest, instead just exectute the Google test binaries
-add_custom_target( test ${CMAKE_CURRENT_BINARY_DIR}/apriltags_unit_test
+add_custom_target( unittest ${CMAKE_CURRENT_BINARY_DIR}/apriltags_unit_test
                     DEPENDS apriltags_unit_test )
