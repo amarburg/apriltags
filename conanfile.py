@@ -18,8 +18,8 @@ class ApriltagsConan(ConanFile):
       self.options["gtest"].shared = False
 
   def imports(self):
-    self.copy("*.dll", dst="bin", src="bin") # From bin to bin
-    self.copy("*.dylib*", dst="bin", src="lib") # From lib to bin
+    self.copy("*.dll", dst="bin", src="bin")     # From bin to bin
+    self.copy("*.dylib*", dst="bin", src="lib")  # From lib to bin
 
   def build(self):
     cmake = CMake(self.settings)
@@ -43,7 +43,7 @@ class ApriltagsConan(ConanFile):
         if self.settings.os == "Macos":
             self.copy(pattern="*.dylib", dst="lib", keep_path=False)
         else:
-            self.copy(pattern="*.so*", dst="lib", src="lib", keep_path=False)
+            self.copy(pattern="*.so*", dst="lib", keep_path=False)
     else:
         self.copy(pattern="*.a", dst="lib", src="lib", keep_path=False)
 
