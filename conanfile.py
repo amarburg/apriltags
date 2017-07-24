@@ -27,6 +27,9 @@ class ApriltagsConan(ConanFile):
 
     cmake_opts += "-DOpenCV_DIR:PATH=%s " % (self.options.opencv_dir) if self.options.opencv_dir else ""
 
+    if not self.scope.dev:
+        cmake_opts += "-DBUILD_PERF_TESTS:BOOL=FALSE -DBUILD_UNIT_TESTS:BOOL=FALSE "
+
     self.run('cmake "%s" %s %s' % (self.conanfile_directory,
                                     cmake.command_line, cmake_opts))
     self.run('cmake --build . %s' % (cmake.build_config))
