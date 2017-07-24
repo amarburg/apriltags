@@ -1,8 +1,20 @@
 language: cpp
+sudo: false
 compiler:
   - gcc
 env:
-  - CMAKE_VARS="-D CMAKE_BUILD_TYPE=Debug -D USE_OPENMP=ON -D BUILD_DETECTOR_WITH_DEBUG=ON" OMP_NUM_THREADS=2 OPENCV=3
-#  - CMAKE_VARS="-D CMAKE_BUILD_TYPE=Debug -D USE_OPENMP=ON" OMP_NUM_THREADS=2 OPENCV=2
-install: sudo -E .travis/dependencies.sh
+  - CMAKE_VARS="-DCMAKE_BUILD_TYPE=Debug -DUSE_OPENMP=ON -DCMAKE_CXX_COMPILER=g++-4.8" OMP_NUM_THREADS=2
+install:
+  - export CC="gcc-4.8" CXX="g++-4.8"
 script: .travis/build.sh
+addons:
+  apt:
+    sources:
+      # Add PPAs with more up-to-date toolchains
+      - ubuntu-toolchain-r-test
+    packages:
+      - libopencv-dev
+      - libeigen3-dev
+      - libgtest-dev
+      - gcc-4.8
+      - g++-4.8

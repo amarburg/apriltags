@@ -1,8 +1,9 @@
 
-#include "opencv2/opencv.hpp"
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/calib3d/calib3d.hpp>
 
 #include "AprilTags/TagDetection.h"
-#include "AprilTags/MathUtil.h"
+#include "Utils/MathUtil.h"
 
 #ifdef PLATFORM_APERIOS
 //missing/broken isnan
@@ -17,6 +18,8 @@ namespace std {
 #endif
 
 namespace AprilTags {
+
+using namespace cv;
 
 TagDetection::TagDetection()
   : good(false), obsCode(), code(), id(), hammingDistance(), rotation(), p(),
@@ -43,13 +46,50 @@ float TagDetection::getXYOrientation() const {
 }
 
 std::pair<float,float> TagDetection::interpolate(float x, float y) const {
-  float z = homography(2,0)*x + homography(2,1)*y + homography(2,2);
-  if ( z == 0 )
-    return std::pair<float,float>(0,0);  // prevents returning a pair with a -NaN, for which gcc 4.4 flubs isnan
-  float newx = (homography(0,0)*x + homography(0,1)*y + homography(0,2))/z + hxy.first;
-  float newy = (homography(1,0)*x + homography(1,1)*y + homography(1,2))/z + hxy.second;
-  return std::pair<float,float>(newx,newy);
+  cv::Point2f pt( interpolatePt( Point2f(x,y )));
+  return std::pair<float,float>(pt.x, pt.y);
 }
+
+cv::Point2f TagDetection::interpolatePt( const cv::Point2f &pt ) const
+{
+	float x = pt.x, y = pt.y;
+	float z = homography(2,0)*x + homography(2,1)*y + homography(2,2);
+	if ( z == 0 )
+	return cv::Point2f(0,0);  // prevents returning a pair with a -NaN, for which gcc 4.4 flubs isnan
+	float newx = (homography(0,0)*x + homography(0,1)*y + homography(0,2))/z + hxy.first;
+	float newy = (homography(1,0)*x + homography(1,1)*y + homography(1,2))/z + hxy.second;
+	return cv::Point2f(newx,newy);
+}
+
+float TagDetection::totalArea( void )
+{
+	// Uses Hero's formula:
+	//   https://en.wikipedia.org/wiki/Heron%27s_formula
+	// to compute area of two sub-triangles, then sums.
+
+	// Compute the side lengths
+	float side[4];
+	for( unsigned int i = 0; i < 3; ++i )
+		side[i] = MathUtil::distance2D( p[i], p[i+1] );
+	side[3] = MathUtil::distance2D( p[3], p[0] );
+
+	float diag = MathUtil::distance2D( p[0], p[2] );
+
+	float s[2];
+ 	s[0] = (side[0] + side[1] + diag) / 2.0;
+	s[1] = (side[2] + side[3] + diag) / 2.0;
+
+	float area[2];
+	area[0] = std::sqrt( s[0]*(s[0]- side[0])*(s[0] - side[1])*(s[0]-diag));
+	area[1] = std::sqrt( s[1]*(s[1]- side[2])*(s[1] - side[3])*(s[1]-diag));
+
+	return area[0] + area[1];
+}
+
+// float TagDetection::visibleArea( void )
+// {
+//
+// }
 
 bool TagDetection::overlapsTooMuch(const TagDetection &other) const {
   // Compute a sort of "radius" of the two targets. We'll do this by

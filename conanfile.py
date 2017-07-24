@@ -5,8 +5,11 @@ class ApriltagsConan(ConanFile):
   version = "master"
   settings = "os", "compiler", "build_type", "arch"
   generators = "cmake"
-  options = {"opencv_dir": "ANY", "build_parallel": [True, False]}
-  default_options = "opencv_dir=''", "build_parallel=True"
+
+  options = {"opencv_dir": "ANY",
+             "use_openmp": [True,False],
+             "shared": [True,False]}
+  default_options = "opencv_dir=''", "shared=True", "use_openmp=False"
   exports = '*'
 
   def config(self):
@@ -20,29 +23,29 @@ class ApriltagsConan(ConanFile):
 
   def build(self):
     cmake = CMake(self.settings)
-    cmake_opts = ""
+
+    cmake_opts = "-DUSE_CONAN:BOOL=TRUE "
+    cmake_opts += "-DUSE_OPENMP:BOOL=%s " % (self.options.use_openmp)
 
     cmake_opts += "-DOpenCV_DIR:PATH=%s " % (self.options.opencv_dir) if self.options.opencv_dir else ""
-    
-    cmake_opts += "-DBUILD_UNIT_TESTS:BOOL=1 -DBUILD_PERF_TEST:BOOL=ON" if self.scope.dev and self.scope.build_tests else ""
 
-    build_opts = "-j" if self.options.build_parallel else ""
+    if not self.scope.dev:
+        cmake_opts += "-DBUILD_PERF_TESTS:BOOL=FALSE -DBUILD_UNIT_TESTS:BOOL=FALSE "
 
-    self.run('cmake "%s" %s %s ' % (self.conanfile_directory, cmake.command_line, cmake_opts))
-    self.run('cmake --build . %s -- %s' % (cmake.build_config, build_opts))
-    #if self.scope.dev and self.scope.build_tests:
-    #   self.run('cp lib/libvideoio.* bin/')
-      # self.run('make unit_test')
+    self.run('cmake "%s" %s %s' % (self.conanfile_directory,
+                                    cmake.command_line, cmake_opts))
+    self.run('cmake --build . %s' % (cmake.build_config))
+
 
   def package(self):
     self.copy("*.h", dst="")
-    #if self.options.shared:
-    if self.settings.os == "Macos":
-        self.copy(pattern="*.dylib", dst="lib", keep_path=False)
+    if self.options.shared:
+        if self.settings.os == "Macos":
+            self.copy(pattern="*.dylib", dst="lib", keep_path=False)
+        else:
+            self.copy(pattern="*.so*", dst="lib", src="lib", keep_path=False)
     else:
-        self.copy(pattern="*.so*", dst="lib", src="lib", keep_path=False)
-    #else:
-    #    self.copy(pattern="*.a", dst="lib", src="lib", keep_path=False)
+        self.copy(pattern="*.a", dst="lib", src="lib", keep_path=False)
 
   def package_info(self):
       self.cpp_info.libs = ["apriltags"]

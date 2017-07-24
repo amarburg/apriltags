@@ -1,5 +1,5 @@
-#ifndef TAGFAMILY_H
-#define TAGFAMILY_H
+#ifndef __APRILTAGS_TAGFAMILY_H
+#define __APRILTAGS_TAGFAMILY_H
 
 #include <climits>
 #include <cmath>
@@ -7,6 +7,9 @@
 #include <vector>
 #include <map>
 
+#include <assert.h>
+
+#include "AprilTags/Types.h"
 #include "AprilTags/TagDetection.h"
 using namespace std;
 
@@ -14,15 +17,32 @@ namespace AprilTags {
 
 class TagCodes {
 public:
-  int bits;
+  int dim;
   int minHammingDistance;
-  std::vector<uint64_t> codes;
+
+  std::vector<Code_t> codes;
+
 public:
- TagCodes(int bits, int minHammingDistance,
-          const uint64_t* codesA, int num)
-   : bits(bits), minHammingDistance(minHammingDistance),
-    codes(codesA, codesA+num) // created vector for all entries of codesA
-      {}
+
+  // n.b. the change in API from Kaess' version.  TagCodes are now specified by
+  // their dimension (edge length), not the number of bits.   bits = dimension^2
+  // but it made far more sense to specify dim and square it then specify
+  // bits and sqrt it.  Also allows for rectangular tags in the future...
+ TagCodes(int d, int minHammingDistance, const Code_t *codesA, int num)
+   : dim( d ),
+     minHammingDistance(minHammingDistance),
+     codes(codesA, codesA+num) // created vector for all entries of codesA
+      { ; }
+
+  Code_t operator[]( unsigned int which ) const
+  {
+    // TODO: Bounds checking currently a fatal error.
+    assert( which < codes.size() );
+    return codes[which];
+  }
+
+  unsigned int size( void ) const { return codes.size(); }
+
 };
 
 //! Generic class for all tag encoding families
@@ -43,19 +63,22 @@ public:
    *  5 4 3  ==>  1 4 7 ==>  3 4 5    (rotate90 applied twice)
    *  2 1 0       0 3 6      6 7 8
    */
-  static uint64_t rotate90(uint64_t w, int d);
+  static Code_t rotate90(Code_t w, int d);
 
   //! Computes the hamming distance between two uint64_ts.
-  static int hammingDistance(uint64_t a, uint64_t b);
+  static int hammingDistance(Code_t a, Code_t b);
 
   //! How many bits are set in the uint64_t?
-  static unsigned char popCountReal(uint64_t w);
+  static unsigned char popCountReal(Code_t w);
 
-  static int popCount(uint64_t w);
+  static int popCount(Code_t w);
 
   //! Given an observed tag with code 'rCode', try to recover the id.
   /*  The corresponding fields of TagDetection will be filled in. */
-  void decode(TagDetection& det, uint64_t rCode) const;
+  void decode( TagDetection& det, Code_t rCode ) const;
+
+  //! Corner matrices are eager-generated */
+//  const cv::Mat &corner( int idx );
 
   //! Prints the hamming distances of the tag codes.
   void printHammingDistances() const;
@@ -64,10 +87,10 @@ public:
   int blackBorder;
 
   //! Number of bits in the tag. Must be n^2.
-  int bits;
+  int bits() const { return _code.dim * _code.dim; }
 
   //! Dimension of tag. e.g. for 16 bits, dimension=4. Must be sqrt(bits).
-  int dimension;
+  int dimension() const { return _code.dim; }
 
   //! Minimum hamming distance between any two codes.
   /*  Accounting for rotational ambiguity? The code can recover
@@ -84,8 +107,12 @@ public:
    */
   int errorRecoveryBits;
 
-  //! The array of the codes. The id for a code is its index.
-  std::vector<uint64_t> codes;
+  //! Specific code (codebook?) in use
+  const TagCodes &_code;
+  const TagCodes &codes( void ) const { return _code; }
+
+//  std::vector<Code_t> codes;
+//  std::vector<cv::Mat> corners;
 
   static const int  popCountTableShift = 12;
   static const unsigned int popCountTableSize = 1 << popCountTableShift;

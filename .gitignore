@@ -3,3 +3,6 @@ __pycache__/
 .AppleDouble
 build/
 
+build-Debug
+build-Release
+__pycache__
