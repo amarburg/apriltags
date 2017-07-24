@@ -37,13 +37,13 @@ class ApriltagsConan(ConanFile):
 
   def package(self):
     self.copy("*.h", dst="")
-    #if self.options.shared:
-    if self.settings.os == "Macos":
-        self.copy(pattern="*.dylib", dst="lib", keep_path=False)
+    if self.options.shared:
+        if self.settings.os == "Macos":
+            self.copy(pattern="*.dylib", dst="lib", keep_path=False)
+        else:
+            self.copy(pattern="*.so*", dst="lib", src="lib", keep_path=False)
     else:
-        self.copy(pattern="*.so*", dst="lib", src="lib", keep_path=False)
-    #else:
-    #    self.copy(pattern="*.a", dst="lib", src="lib", keep_path=False)
+        self.copy(pattern="*.a", dst="lib", src="lib", keep_path=False)
 
   def package_info(self):
       self.cpp_info.libs = ["apriltags"]

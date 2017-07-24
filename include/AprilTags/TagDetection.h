@@ -1,12 +1,14 @@
-#ifndef TAGDETECTION_H
-#define TAGDETECTION_H
+#ifndef __TAGDETECTION_H__
+#define __TAGDETECTION_H__
 
 #include <Eigen/Dense>
 
-#include "opencv2/opencv.hpp"
+#include <opencv2/core/core.hpp>
 
 #include <utility>
 #include <vector>
+
+#include "AprilTags/Types.h"
 
 namespace AprilTags {
 
@@ -22,10 +24,10 @@ struct TagDetection {
   bool good;
 
   //! Observed code
-  uint64_t obsCode;
+  Code_t obsCode;
 
   //! Matched code
-  uint64_t code;
+  Code_t code;
 
   //! What was the ID of the detected tag?
   int id;
@@ -50,6 +52,9 @@ struct TagDetection {
   /*! Observed perimeter excludes the inferred perimeter which is used to connect incomplete quads. */
   float observedPerimeter;
 
+  float totalArea();
+  //float visibleArea();
+
   //! A 3x3 homography that computes pixel coordinates from tag-relative coordinates.
   /*  Both the input and output coordinates are 2D homogeneous vectors, with y = Hx.
    *  'y' are pixel coordinates, 'x' are tag-relative coordinates. Tag coordinates span
@@ -64,8 +69,10 @@ struct TagDetection {
   //! The homography is relative to image center, whose coordinates are below.
   std::pair<float,float> hxy;
 
-  //! Interpolate point given (x,y) is in tag coordinate space from (-1,-1) to (1,1).
+  //! Interpolate a point (x,y)  in the tag coordinate space from (-1,-1) to (1,1)
+  // into image coordinates
   std::pair<float,float> interpolate(float x, float y) const;
+  cv::Point2f            interpolatePt( const cv::Point2f &pt ) const;
 
   //! Used to eliminate redundant tags
   bool overlapsTooMuch(const TagDetection &other) const;

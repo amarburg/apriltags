@@ -2,7 +2,7 @@
 
 #include "gtest/gtest.h"
 
-#include <opencv2/highgui.hpp>
+#include <opencv2/highgui/highgui.hpp>
 using namespace cv;
 
 #include "AprilTags/TagDetector.h"
