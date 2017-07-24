@@ -1,6 +1,6 @@
-find_package( GTest REQUIRED )
 
 include_directories( ${GTEST_INCLUDE_DIRS}
+                     ${CONAN_INCLUDE_DIRS}
                      ${CMAKE_SOURCE_DIR}/test/data )
 
 add_executable( apriltags_unit_test
@@ -9,6 +9,7 @@ add_executable( apriltags_unit_test
 target_link_libraries( apriltags_unit_test
           ${GTEST_BOTH_LIBRARIES}
           ${OpenCV_LIBS}
+          ${CONAN_LIBS}
           apriltags )
 
 # Don't use ctest, instead just execture the Google test binaries

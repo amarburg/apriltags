@@ -1,6 +1,7 @@
-find_package( GTest REQUIRED )
+
 
 include_directories( ${GTEST_INCLUDE_DIRS}
+                     ${CONAN_INCLUDE_DIRS}
                      ${CMAKE_SOURCE_DIR}/test/data )
 
 add_executable( tag_detector_perf
@@ -9,6 +10,7 @@ add_executable( tag_detector_perf
 target_link_libraries( tag_detector_perf
          ${GTEST_BOTH_LIBRARIES}
          ${OpenCV_LIBS}
+         ${CONAN_LIBS}
          apriltags )
 
 # Add a custom target "perf" which runs any performance tests

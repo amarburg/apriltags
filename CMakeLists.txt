@@ -1,6 +1,13 @@
 cmake_minimum_required(VERSION 2.6)
 project(apriltags)
 
+option(USE_CONAN  "Use the Conan packaging system" OFF)
+if(USE_CONAN)
+  message("Using Conan")
+  include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+  conan_basic_setup()
+endif()
+
 configure_file(${CMAKE_SOURCE_DIR}/cmake/FindEigen.cmake
                ${CMAKE_BINARY_DIR}/FindEigen.cmake @ONLY)
 
@@ -14,7 +21,7 @@ include_directories(${EIGEN_INCLUDE_DIR})
 
 ## The "imgcodecs" package appears in OpenCV 3.0
 # Not sure how to do a version check here and request "highgui" instead...?
-find_package(OpenCV REQUIRED core imgcodecs imgproc calib3d )
+find_package(OpenCV REQUIRED core highgui imgproc calib3d )
 include_directories(${OpenCV_INCLUDE_DIRS})
 
 include_directories(include)
@@ -56,10 +63,18 @@ add_definitions( -DTEST_DATA_DIR="${TEST_DATA_DIR}" )
 
 option( BUILD_PERF_TESTS "Build performance tests" ON )
 if( BUILD_PERF_TESTS )
+  if( NOT USE_CONAN )
+    find_package( GTest REQUIRED )
+  endif()
+
   add_subdirectory( test/perf )
 endif()
 
 option( BUILD_UNIT_TESTS "Build unit tests" ON )
 if( BUILD_UNIT_TESTS )
+  if( NOT USE_CONAN )
+    find_package( GTest REQUIRED )
+  endif()
+
   add_subdirectory( test/unit )
 endif()
