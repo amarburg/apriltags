@@ -36,7 +36,12 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ggdb")
 #
 file(GLOB HEADER_FILES ${CMAKE_SOURCE_DIR}/include/Apriltags/*)
 file(GLOB SOURCE_FILES "lib/*/*.cc" "lib/*.cc" )
-add_library(apriltags ${SOURCE_FILES})
+option(SHARED_LIBS "Build shared libraries" ON)
+if(SHARED_LIBS)
+  add_library(apriltags SHARED ${SOURCE_FILES})
+else()
+  add_library(apriltags STATIC ${SOURCE_FILES})
+endif()
 
 target_link_libraries(apriltags ${OpenCV_LIBS})
 
