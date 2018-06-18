@@ -1,6 +1,6 @@
 pipeline:
   build:
-    image: amarburg/lsdslam-dev-host:latest
+    image: amarburg/camera-calibration-dev-host:latest
     pull:  true
     commands:
           - ./fips set config linux-make-unittest
