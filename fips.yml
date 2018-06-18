@@ -1,0 +1,13 @@
+imports:
+    fips-googletest:
+        git: https://github.com/amarburg/fips-googletest.git
+
+exports:
+   header-dirs:
+     - include/
+   modules:
+     apriltags: .
+
+defines:
+  FIPS_UNITTESTS_RUN_AFTER_BUILD: ON
+  FIPS_RTTI: ON

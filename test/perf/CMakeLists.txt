@@ -1,14 +1,10 @@
 
-include_directories( ${GTEST_INCLUDE_DIRS}
-                     ${CMAKE_SOURCE_DIR}/test/data )
+gtest_begin(apriltags_perf)
 
-add_executable( tag_detector_perf
-               tag_detector_perf.cc )
+  fips_files( tag_detector_perf.cc )
 
-target_link_libraries( tag_detector_perf
-         ${GTEST_BOTH_LIBRARIES}
-         ${OpenCV_LIBS}
-         apriltags )
+  fips_deps(apriltags)
 
-# Add a custom target "perf" which runs any performance tests
-add_custom_target( perf_test ${CMAKE_CURRENT_BINARY_DIR}/tag_detector_perf )
+  fips_include_directories( ${CMAKE_SOURCE_DIR}/test/data )
+
+gtest_end()

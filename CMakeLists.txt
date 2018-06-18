@@ -1,8 +1,11 @@
-cmake_minimum_required(VERSION 2.6)
-project(apriltags)
+if (NOT FIPS_IMPORT)
+  cmake_minimum_required(VERSION 3.5.0)
 
-# configure_file(${CMAKE_SOURCE_DIR}/cmake/FindEigen.cmake
-#                ${CMAKE_BINARY_DIR}/FindEigen.cmake @ONLY)
+  get_filename_component(FIPS_ROOT_DIR "../fips" ABSOLUTE)
+  include("${FIPS_ROOT_DIR}/cmake/fips.cmake")
+
+  fips_setup(PROJECT apriltags)
+endif()
 
 list(INSERT CMAKE_MODULE_PATH 0
     ${CMAKE_SOURCE_DIR}/cmake )
@@ -10,19 +13,13 @@ list(INSERT CMAKE_MODULE_PATH 0
 find_package(Eigen REQUIRED)
 include_directories(${EIGEN_INCLUDE_DIR})
 
-## The "imgcodecs" package appears in OpenCV 3.0
-# Not sure how to do a version check here and request "highgui" instead...?
+## The "imgcodecs" package is new in OpenCV 3.0
 find_package(OpenCV REQUIRED core imgproc calib3d )
 if( OpenCV_VERSION_MAJOR VERSION_LESS "3.0.0" )
   find_package(OpenCV REQUIRED highgui )
 else()
   find_package(OpenCV REQUIRED imgcodecs )
 endif()
-
-include_directories(${OpenCV_INCLUDE_DIRS})
-include_directories(include lib)
-
-
 
 ## Slightly obtuse syntax.
 add_definitions( -std=c++11 -Wall )
@@ -39,25 +36,6 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ggdb")
 # Use default for now
 #set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -O3 -ggdb")
 
-
-
-#
-# libapriltags
-#
-file(GLOB HEADER_FILES ${CMAKE_SOURCE_DIR}/include/Apriltags/*)
-file(GLOB SOURCE_FILES "lib/*/*.cc" "lib/*.cc" )
-add_library(apriltags ${SOURCE_FILES})
-
-target_link_libraries(apriltags ${OpenCV_LIBS})
-
-# TODO:  This breaks with subdirectories in include/Apriltags
-# install(PROGRAMS ${HEADER_FILES} DESTINATION include/AprilTags COMPONENT applications)
-install(TARGETS apriltags
-  RUNTIME DESTINATION bin
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib
-  )
-
 ## Configurable options
 option( USE_OPENMP "Build with OpenMP" ON )
 if( USE_OPENMP )
@@ -65,26 +43,41 @@ if( USE_OPENMP )
   add_definitions( "-fopenmp" )
 endif()
 
-#
-## Performance and Unit testing
-#
-# Location for test images used by unit and performance tests
-#
-set( TEST_DATA_DIR ${CMAKE_SOURCE_DIR}/test/data )
-add_definitions( -DTEST_DATA_DIR="${TEST_DATA_DIR}" )
+fips_include_directories(${OpenCV_INCLUDE_DIRS}
+                    include lib )
 
-option( BUILD_PERF_TESTS "Build performance tests" ON )
-option( BUILD_UNIT_TESTS "Build unit tests" ON )
+#
+# libapriltags
+#
+#file(GLOB HEADER_FILES ${CMAKE_SOURCE_DIR}/include/Apriltags/*)
 
-if( BUILD_PERF_TESTS OR BUILD_UNIT_TESTS)
-  include( ${CMAKE_SOURCE_DIR}/cmake/BuildGTestLibraries.cmake )
+fips_begin_module( apriltags )
+  file(GLOB SOURCE_FILES "lib/*/*.cc" "lib/*.cc" )
+
+  fips_files( ${SOURCE_FILES})
+  fips_libs( ${OpenCV_LIBS})
+
+fips_end_module()
+
+
+if( NOT FIPS_IMPORT )
+  #
+  ## Performance and Unit testing
+  #
+  # Location for test images used by unit and performance tests
+  #
+  set( TEST_DATA_DIR ${CMAKE_SOURCE_DIR}/test/data )
+  add_definitions( -DTEST_DATA_DIR="${TEST_DATA_DIR}" )
+
+  option( BUILD_PERF_TESTS "Build performance tests" ON )
 
   if( BUILD_PERF_TESTS )
     add_subdirectory( test/perf )
   endif()
 
-  if( BUILD_UNIT_TESTS )
+  if( FIPS_UNITTESTS )
     add_subdirectory( test/unit )
   endif()
 
+  fips_finish()
 endif()
