@@ -36,13 +36,6 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ggdb")
 # Use default for now
 #set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -O3 -ggdb")
 
-## Configurable options
-option( USE_OPENMP "Build with OpenMP" ON )
-if( USE_OPENMP )
-  add_definitions( -DUSE_OPENMP )
-  add_definitions( "-fopenmp" )
-endif()
-
 fips_include_directories(${OpenCV_INCLUDE_DIRS}
                     include lib )
 
@@ -51,11 +44,34 @@ fips_include_directories(${OpenCV_INCLUDE_DIRS}
 #
 #file(GLOB HEADER_FILES ${CMAKE_SOURCE_DIR}/include/Apriltags/*)
 
+## Configurable options
+option( USE_OPENMP "Use OpenMP" ON )
+if( USE_OPENMP )
+
+  if(APPLE)
+    ## These are the required "hints" for libomp installed from Homebrew
+    set(OpenMP_CXX_FLAGS "-Xpreprocessor -fopenmp -I/usr/local/opt/libomp/include")
+    set(OpenMP_CXX_LIB_NAMES "omp")
+    set(OpenMP_omp_LIBRARY /usr/local/opt/libomp/lib/libomp.dylib)
+  endif()
+
+  find_package(OpenMP)
+  if(OpenMP_CXX_FOUND)
+    add_definitions( -DUSE_OPENMP )
+    message( STATUS "Found OpenMP, enabling" )
+  endif()
+endif()
+
+
 fips_begin_module( apriltags )
   file(GLOB SOURCE_FILES "lib/*/*.cc" "lib/*.cc" )
 
   fips_files( ${SOURCE_FILES})
-  fips_libs( ${OpenCV_LIBS})
+  fips_libs( ${OpenCV_LIBS} )
+
+  if(OpenMP_CXX_FOUND)
+    fips_libs(OpenMP::OpenMP_CXX)
+  endif()
 
 fips_end_module()
 
